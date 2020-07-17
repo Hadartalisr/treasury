@@ -1,0 +1,52 @@
+[
+      {
+        "section": 0,
+        "male": 1978,
+        "female": 1870
+      },
+      {
+        "section": 10,
+        "male": 4768,
+        "female": 3783
+      },
+      {
+        "section": 20,
+        "male": 5376,
+        "female": 4743
+      },
+      {
+        "section": 30,
+        "male": 3624,
+        "female": 2969
+      },
+      {
+        "section": 40,
+        "male": 3008,
+        "female": 2794
+      },
+      {
+        "section": 50,
+        "male": 2376,
+        "female": 2198
+      },
+      {
+        "section": 60,
+        "male": 1689,
+        "female": 1394
+      },
+      {
+        "section": 70,
+        "male": 882,
+        "female": 763
+      },
+      {
+        "section": 80,
+        "male": 386,
+        "female": 497
+      },
+      {
+        "section": 90,
+        "male": 115,
+        "female": 266
+      }
+]
