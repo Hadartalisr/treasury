@@ -6,6 +6,9 @@ import datetime
 import requests
 import xlrd
 import csv
+from pandas.tseries.holiday import USFederalHolidayCalendar
+
+
 
 
 def get_date_format(days_to_sub):
@@ -33,6 +36,7 @@ def get_treasury_delta(days_to_sub):
         delta = close-open
     except:
         delta = 0
+        print("error in get_treasury_delta: "+days_to_sub+" days_to_sub.")
     finally:
         return delta
 
@@ -49,7 +53,6 @@ def get_treasury_list(days_to_sub):
             if item['date'] == my_date:
                 has_date = True
         if not has_date:
-            print(my_date)
             delta = get_treasury_delta(i)
             data.append({'date': my_date, 'delta': delta})
     y = json.dumps(data)
@@ -146,6 +149,21 @@ def get_issues_between_dates(d1, m1, y1, d2, m2, y2):
     return issues_by_date
 
 
+def get_delta_issues_maturities(d1, m1, y1, d2, m2, y2):
+    maturities = get_maturity_between_dates(d1, m1, y1, d2, m2, y2)
+    issues = get_issues_between_dates(d1, m1, y1, d2, m2, y2)
+    for issue in issues:
+        search_result = [x for x in maturities if x['date'] == issue['date']]
+        for result in search_result:
+            issue['offeringAmount'] = int(issue['offeringAmount']) - int(result['offeringAmount'])
+    for maturity in maturities:
+        search_result = [x for x in issues if x['date'] == maturity['date']]
+        if len(search_result) == 0:
+            maturity['offeringAmount'] = -int(maturity['offeringAmount'])
+            issues.append(maturity)
+    return issues
+
+
 
 def get_date_format_for_treasurydirect(date):
     date = str(date[2:4])+str(date[5:7])+str(date[8:10])+"00"
@@ -186,16 +204,56 @@ def getnearestsarr(X, indicies):
     for element in indicies[0]:
         a.append(X[element])
     return a
-    #endregion
+
+#endregion
 
 
-maturities = get_maturity_between_dates("01", "06", "2020", "25", "07", "2020")
-issues = get_issues_between_dates("01", "06", "2020", "25", "07", "2020")
+def is_market_day(date):
+    if date.weekday() == 5 or date.weekday() == 6:
+        return False
+    cal = USFederalHolidayCalendar()
+    holidays = cal.holidays(start='2018-01-01', end='2022-12-31').to_pydatetime()
+    if date in holidays:
+        return False
+    return True
+
+
+def generate_dates(dr):
+    dates_to_return = list()
+    start = datetime.date(int(dr[2]), int(dr[1]), int(dr[0]))
+    end = datetime.date(int(dr[5]), int(dr[4]), int(dr[3]))
+    delta = end-start
+    for i in range(0, delta.days+1):
+        cur_date = start + datetime.timedelta(days=i)
+        is_weekend = is_market_day(cur_date)
+        cur_date = {'date': cur_date.strftime('%Y%m%d')[2:] + '00', 'isLegalDate': is_weekend}
+        dates_to_return.append(cur_date)
+    return dates_to_return
+
+
+
+# The process (main)
+date_range = ['19', '07', '2020', '25', '07', '2020']
+# input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
+dates = generate_dates(date_range)
+print(dates)
+
+"""
+start_month = input()
+start_year = input()
+end_day = input()
+end_month = input()
+end_year = input()
+# generateDates()
+
+print(start_day + start_month + start_year + end_day + end_month + end_year)
+"""
+"""
+delta_issues_maturities = get_delta_issues_maturities("10", "07", "2020", "25", "07", "2020")
 snp_data = get_snp_list()
-treasury_data = get_treasury_list(90)
+treasury_data = get_treasury_list(365)
 
-print(maturities)
-print(issues)
+print(delta_issues_maturities)
 print(treasury_data)
 
 fig, ax = plt.subplots()
@@ -205,31 +263,30 @@ plt.axhline(y=0, color='black', linestyle='-')
 
 # maturities
 # ax.plot(list(map(get_date, maturities)),list(map(get_offeringAmount, maturities)))
-ax.scatter(list(map(get_date, maturities)), list(map(get_offeringAmount, maturities)), marker='^')
-for n in maturities:
+ax.scatter(list(map(get_date, delta_issues_maturities)), list(map(get_offeringAmount, delta_issues_maturities)), \
+           marker='^', color='blue')
+for n in delta_issues_maturities:
     ax.annotate(str(int(n['offeringAmount'])/1000000), (n['date'], int(n['offeringAmount'])/1000000))
 
 
 # issues
 # ax.plot(list(map(get_date, maturities)),list(map(get_offeringAmount, maturities)))
-ax.scatter(list(map(get_date, issues)), list(map(get_offeringAmount, issues)), marker='^')
-for n in issues:
-    ax.annotate(str(int(n['offeringAmount'])/1000000), (n['date'], int(n['offeringAmount'])/1000000))
+#ax.scatter(list(map(get_date, issues)), list(map(get_offeringAmount, issues)), marker='^')
+#for n in issues:
+#    ax.annotate(str(int(n['offeringAmount'])/1000000), (n['date'], int(n['offeringAmount'])/1000000))
 
 
 
 # treasury_data
 # ax.plot(list(map(get_date, treasury_data)), list(map(get_delta, treasury_data)))
-ax.scatter(list(map(get_date, treasury_data)), list(map(get_delta, treasury_data)), marker='o')
+ax.scatter(list(map(get_date, treasury_data)), list(map(get_delta, treasury_data)), marker='o', color='red')
 for n in treasury_data:
     ax.annotate(str(n['delta']), (n['date'], n['delta']))
+"""
 
-# snp data
-# ax.plot(list(map(get_date, snp_data)), list(map(get_snp_delta, snp_data)))
-# ax.scatter(list(map(get_date, snp_data)), list(map(get_snp_delta, snp_data)), marker='o')
-# for n in snp_data:
-#     ax.annotate(str(n['delta']), (n['date'], n['delta']*1000))
 plt.show()
+
+print('thank you')
 
 """
 X = np.array(males)
@@ -261,10 +318,17 @@ ax.annotate('myPoint', myPoint)
 # add the circle around
 circle1 = plt.Circle(myPoint, max(distanceArr), color='g', clip_on=False)
 # ax.add_artist(circle1)
+
+"""
+"""
+# snp data
+# ax.plot(list(map(get_date, snp_data)), list(map(get_snp_delta, snp_data)))
+ax.scatter(list(map(get_date, snp_data)), list(map(get_snp_delta, snp_data)), marker='o', color='orange')
+for n in snp_data:
+    ax.annotate(str(n['delta']), (n['date'], n['delta']*1000))
+    
 """
 
-
-print('thank you')
 
 
 
