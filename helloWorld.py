@@ -7,7 +7,7 @@ import requests
 import xlrd
 import csv
 from pandas.tseries.holiday import USFederalHolidayCalendar
-
+import sys
 
 def get_date_format(days_to_sub):
     x = datetime.datetime.today() - datetime.timedelta(days=days_to_sub)
@@ -43,11 +43,10 @@ def get_treasury_delta(days_to_sub):
 
 
 def get_treasury_list(days_to_sub):
-    data = []
     with open('.idea/treasuryData.json', 'r') as f:
         data = json.load(f)
         data = json.loads(data)
-    for i in range(3, days_to_sub + 3):
+    for i in range(2, days_to_sub + 2):
         my_date = get_date_format(i)
         has_date = False
         for item in data:
@@ -103,7 +102,14 @@ def get_maturity_between_dates(d1, m1, y1, d2, m2, y2):
           "&filteroperator1=0&filterdatafield1=maturityDate&filterscount=2&groupscount=0&pagenum=" + \
           "0&pagesize=100&recordstartindex=0&recordendindex=100&_=1595068644528"
     print(url)
-    str = requests.get(url).text
+    retries = 0
+    response = requests.get(url)
+    while response.status_code != 200 and retries < 3:
+        response = requests.get(url)
+        retries += 1
+    if response.status_code != 200:
+        sys.exit(2)
+    str = response.text
     i = str.index("(")
     str = str[i + 1:-2]
     obj = json.loads(str)
@@ -130,7 +136,14 @@ def get_issues_between_dates(d1, m1, y1, d2, m2, y2):
           "filtervalue1=" + m2 + "%2F" + d2 + "%2F" + y2 + "&filtercondition1=LESS_THAN_OR_EQUAL&filteroperator1=0&" + \
           "filterdatafield1=issueDate&filterscount=2&groupscount=0&pagenum=0&pagesize=100&" + \
           "recordstartindex=0&recordendindex=100&_=1595080553625"
-    str = requests.get(url).text
+    retries = 0
+    response = requests.get(url)
+    while response.status_code != 200 and retries < 3:
+        response = requests.get(url)
+        retries += 1
+    if response.status_code != 200:
+        sys.exit(2)
+    str = response.text
     i = str.index("(")
     str = str[(i + 1):-2]
     obj = json.loads(str)
@@ -151,18 +164,47 @@ def get_issues_between_dates(d1, m1, y1, d2, m2, y2):
 
 
 def get_delta_issues_maturities(start_day, start_month, start_year, end_day, end_month, end_year):
-    maturities = get_maturity_between_dates(start_day, start_month, start_year, end_day, end_month, end_year)
-    issues = get_issues_between_dates(start_day, start_month, start_year, end_day, end_month, end_year)
-    for issue in issues:
-        search_result = [x for x in maturities if x['date'] == issue['date']]
-        for result in search_result:
-            issue['offeringAmount'] = int(issue['offeringAmount']) - int(result['offeringAmount'])
-    for maturity in maturities:
-        search_result = [x for x in issues if x['date'] == maturity['date']]
-        if len(search_result) == 0:
-            maturity['offeringAmount'] = -int(maturity['offeringAmount'])
-            issues.append(maturity)
-    return issues
+    with open('.idea/imdData.json', 'r') as f:
+        imd_data = json.load(f)
+        imd_data = json.loads(imd_data)
+    imd = list()
+    start_date = datetime.date(int(start_year), int(start_month), int(start_day))
+    end_date = datetime.date(int(end_year), int(end_month), int(end_day))
+    today = datetime.date.today()
+    delta = end_date-start_date
+    delta = delta.days + 1
+    for i in range(0, delta):
+        cur_date = start_date + datetime.timedelta(days=i)
+        cur_date_my_format = get_date_format_from_date(cur_date)
+        # search in the imd_data for the date
+        search_result = [x for x in imd_data if x['date'] == cur_date_my_format]
+        is_future_date = cur_date >= today
+        # new date or date in the future
+        if len(search_result) == 0 or is_future_date:
+            my_date_day = cur_date_my_format[4:6]
+            my_date_month = cur_date_my_format[2:4]
+            my_date_year = '20' + cur_date_my_format[0:2]
+            maturities = get_maturity_between_dates(my_date_day, my_date_month, my_date_year,
+                                                    my_date_day, my_date_month, my_date_year)
+            issues = get_issues_between_dates(my_date_day, my_date_month, my_date_year,
+                                              my_date_day, my_date_month, my_date_year)
+            new_imd = 0
+            for issue in issues:
+                new_imd = new_imd + int(issue['offeringAmount'])
+            for maturity in maturities:
+                new_imd = new_imd - int(maturity['offeringAmount'])
+            new_imd = {'date': cur_date_my_format, 'imd': new_imd}
+            imd.append(new_imd)
+            if not is_future_date:
+                imd_data.append(new_imd)
+        # existing date
+        else:
+            search_result = search_result[0]
+            imd.append(search_result)
+    y = json.dumps(imd_data)
+    with open('.idea/imdData.json', 'w') as f:
+        json.dump(y, f)
+    return imd
 
 
 def get_date_format_for_treasurydirect(date):
@@ -181,7 +223,7 @@ def get_axis_date(d):
     return datetime.date(int(my_date_year), int(my_date_month), int(my_date_day))
 
 
-def get_treasury_delta(d):
+def get_treasury_delta_from_obj(d):
     return float(d['treasury_delta'])
 
 
@@ -261,14 +303,15 @@ def update_dates_imd(ds):
             imd_was_inserted = False
             while not imd_was_inserted:
                 if date['is_legal_date']:
-                    date['imd'] = search_result[0]['offeringAmount']
+                    date['imd'] = search_result[0]['imd']
                     imd_was_inserted = True
                 else:
                     date['imd'] = 0
                     my_date_day = date['date'][4:6]
                     my_date_month = date['date'][2:4]
                     my_date_year = '20' + date['date'][0:2]
-                    my_date = datetime.date(my_date_year, my_date_month, my_date_day) + datetime.timedelta(days=1)
+                    my_date = datetime.date(int(my_date_year), int(my_date_month), int(my_date_day))\
+                              + datetime.timedelta(days=1)
                     date = [d for d in ds if d['date'] == get_date_format_from_date(my_date)][0]
         else:
             date['imd'] = 0
@@ -284,7 +327,7 @@ def add_days(date, days_to_add):
 
 
 # The process (main)
-date_range = ['01', '07', '2020', '25', '07', '2020']
+date_range = ['01', '03', '2020', '25', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days(dates[0]['date'], -2)
@@ -308,9 +351,10 @@ plt.scatter(list(map(get_axis_date, illegal_dates)), list(map((lambda x: 0), ill
             marker='o', color='#a832a4')
 
 # plt - treasury_delta
-plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta, legal_dates)),
+plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
          color='blue', linestyle='-', label='treasury_delta')
-plt.scatter(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta, legal_dates)), marker='o', color='blue')
+plt.scatter(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
+            marker='o', color='blue')
 for n in legal_dates:
     plt.annotate(str(n['treasury_delta']), (get_axis_date(n), n['treasury_delta']))
 
