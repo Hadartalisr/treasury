@@ -15,8 +15,29 @@ def get_date_format(days_to_sub):
     return x
 
 
-def get_date_format_from_date(date):
+def get_my_date_from_date(date):
     return date.strftime('%Y%m%d')[2:] + '00'
+
+
+def get_date_from_my_date(my_date):
+    my_date_day = my_date[4:6]
+    my_date_month = my_date[2:4]
+    my_date_year = '20' + my_date[0:2]
+    return datetime.date(int(my_date_year), int(my_date_month), int(my_date_day))
+
+
+def get_date_format_for_treasurydirect(date):
+    my_date = str(date[2:4]) + str(date[5:7]) + str(date[8:10]) + "00"
+    return my_date
+
+
+# date in my format - returns datetime
+def add_days_and_get_date(date, days_to_add):
+    my_date_day = date[4:6]
+    my_date_month = date[2:4]
+    my_date_year = '20' + date[0:2]
+    date = datetime.date(int(my_date_year), int(my_date_month), int(my_date_day)) + datetime.timedelta(days=days_to_add)
+    return date
 
 
 def get_treasury_url(days_to_sub):
@@ -59,6 +80,58 @@ def get_treasury_list(days_to_sub):
     with open('.idea/treasuryData.json', 'w') as f:
         json.dump(y, f)
     return data
+
+
+# date in my_date format - return last date in my_date format
+def get_last_wedensday(date):
+    cur_date = add_days_and_get_date(date, 0)
+    if cur_date.weekday() == 2:
+        cur_date = cur_date - datetime.timedelta(days=1)
+    while cur_date.weekday() != 2:
+        cur_date = cur_date - datetime.timedelta(days=1)
+    cur_date = get_my_date_from_date(cur_date)
+    return cur_date
+
+
+# date in my_date format
+def get_fed_url(date):
+    wed_date = get_last_wedensday(date)
+    wed_date_day = wed_date[4:6]
+    wed_date_month = wed_date[2:4]
+    wed_date_year = '20' + wed_date[0:2]
+    wed_date = wed_date_year+'-'+wed_date_month+'-'+wed_date_day
+    url = 'https://markets.newyorkfed.org/api/soma/non-mbs/get/ALL/asof/'+wed_date+'.xlsx'
+    return url
+
+
+# date in my_date format
+def get_fed_data(date):
+    excel_url = get_fed_url(date)
+    my_day = date[4:6]
+    my_month = date[2:4]
+    my_year = '20' + date[0:2]
+    date_in_excel = my_month+'-'+my_day+'-'+my_year
+    maturities = 0
+    try:
+        resp = requests.get(excel_url)
+        workbook = xlrd.open_workbook(file_contents=resp.content)
+        worksheet = workbook.sheet_by_index(0)
+        row = 0
+        is_empty = False
+        while not is_empty:
+            cell_date = worksheet.cell(rowx=row, colx=3).value
+            if cell_date == '':
+                is_empty = True
+                continue
+            print(cell_date)
+            if cell_date == date_in_excel:
+                maturities = maturities + int(worksheet.cell(rowx=row, colx=7).value)
+            row += 1
+    except:
+        maturities = 0
+        print("error in get_fed_data: " + date + " .")
+    finally:
+        return maturities
 
 
 def days_between(d1, d2):
@@ -175,7 +248,7 @@ def get_delta_issues_maturities(start_day, start_month, start_year, end_day, end
     delta = delta.days + 1
     for i in range(0, delta):
         cur_date = start_date + datetime.timedelta(days=i)
-        cur_date_my_format = get_date_format_from_date(cur_date)
+        cur_date_my_format = get_my_date_from_date(cur_date)
         # search in the imd_data for the date
         search_result = [x for x in imd_data if x['date'] == cur_date_my_format]
         is_future_date = cur_date >= today
@@ -207,20 +280,12 @@ def get_delta_issues_maturities(start_day, start_month, start_year, end_day, end
     return imd
 
 
-def get_date_format_for_treasurydirect(date):
-    date = str(date[2:4]) + str(date[5:7]) + str(date[8:10]) + "00"
-    return date
-
-
 # region axisAndJson
 ...
 
 
 def get_axis_date(d):
-    my_date_day = d['date'][4:6]
-    my_date_month = d['date'][2:4]
-    my_date_year = '20' + d['date'][0:2]
-    return datetime.date(int(my_date_year), int(my_date_month), int(my_date_day))
+    return get_date_from_my_date(d['date'])
 
 
 def get_treasury_delta_from_obj(d):
@@ -323,30 +388,23 @@ def update_dates_imd(ds):
                     my_date_year = '20' + date['date'][0:2]
                     my_date = datetime.date(int(my_date_year), int(my_date_month), int(my_date_day))\
                               + datetime.timedelta(days=1)
-                    date = [d for d in ds if d['date'] == get_date_format_from_date(my_date)][0]
+                    date = [d for d in ds if d['date'] == get_my_date_from_date(my_date)][0]
         else:
             date['imd'] = 0
 
 
-# date in my format - returns datetime
-def add_days(date, days_to_add):
-    my_date_day = date[4:6]
-    my_date_month = date[2:4]
-    my_date_year = '20' + date[0:2]
-    date = datetime.date(int(my_date_year), int(my_date_month), int(my_date_day)) + datetime.timedelta(days=days_to_add)
-    return date
-
-
 # The process (main)
-date_range = ['01', '01', '2020', '30', '03', '2020']
+date_range = ['17', '07', '2020', '18', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
-minDate = add_days(dates[0]['date'], -2)
-maxDate = add_days(dates[len(dates) - 1]['date'], 2)
+minDate = add_days_and_get_date(dates[0]['date'], -2)
+maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
 update_dates_treasury_delta(dates)
 update_dates_imd(dates)
-print(dates)
+for date in dates:
+    print(get_fed_data(date['date']))
 
+"""
 # plt - x axis
 fig, ax = plt.subplots()
 ax.axhline(y=0, color='black', linestyle='-')
@@ -390,6 +448,8 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 plt.show()
+"""
+
 
 """
 # maturities
