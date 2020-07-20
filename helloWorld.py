@@ -110,24 +110,19 @@ def get_fed_data(date):
     my_day = date[4:6]
     my_month = date[2:4]
     my_year = '20' + date[0:2]
-    date_in_excel = my_month+'-'+my_day+'-'+my_year
+    date_in_excel = my_year+'-'+my_month+'-'+my_day
     maturities = 0
     try:
         resp = requests.get(excel_url)
         workbook = xlrd.open_workbook(file_contents=resp.content)
         worksheet = workbook.sheet_by_index(0)
-        row = 0
-        is_empty = False
-        while not is_empty:
-            cell_date = worksheet.cell(rowx=row, colx=3).value
-            if cell_date == '':
-                is_empty = True
-                continue
-            print(cell_date)
+        rows = worksheet.nrows
+        for i in range (0,rows):
+            cell_date = worksheet.cell(rowx=i, colx=3).value
             if cell_date == date_in_excel:
-                maturities = maturities + int(worksheet.cell(rowx=row, colx=7).value)
-            row += 1
-    except:
+                maturities = maturities + int(worksheet.cell(rowx=i, colx=7).value)
+    except Exception as e:
+        print(e)
         maturities = 0
         print("error in get_fed_data: " + date + " .")
     finally:
@@ -394,7 +389,7 @@ def update_dates_imd(ds):
 
 
 # The process (main)
-date_range = ['17', '07', '2020', '18', '07', '2020']
+date_range = ['01', '06', '2020', '18', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days_and_get_date(dates[0]['date'], -2)
@@ -402,9 +397,9 @@ maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
 update_dates_treasury_delta(dates)
 update_dates_imd(dates)
 for date in dates:
-    print(get_fed_data(date['date']))
+    print(date['date'] + ' ' + str(get_fed_data(date['date'])))
 
-"""
+
 # plt - x axis
 fig, ax = plt.subplots()
 ax.axhline(y=0, color='black', linestyle='-')
@@ -448,7 +443,7 @@ plt.grid(True)
 plt.legend()
 plt.tight_layout()
 plt.show()
-"""
+
 
 
 """
