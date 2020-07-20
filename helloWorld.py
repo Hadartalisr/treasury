@@ -231,6 +231,17 @@ def get_imd(d):
     return int(d['imd']) / 1000000
 
 
+def get_imd_treasury_delta(d):
+    imd = get_imd(d)
+    number = 100000
+    treasury = get_treasury_delta_from_obj(d)
+    if imd == 0 or treasury == 0:
+        return number
+    elif imd*treasury < 0:
+        return -number
+    return number
+
+
 def get_snp_delta(d):
     return d['delta'] * 1000
 
@@ -327,7 +338,7 @@ def add_days(date, days_to_add):
 
 
 # The process (main)
-date_range = ['01', '03', '2020', '25', '07', '2020']
+date_range = ['01', '01', '2020', '30', '03', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days(dates[0]['date'], -2)
@@ -366,9 +377,18 @@ ax.scatter(list(map(get_axis_date, legal_dates)), list(map(get_imd, legal_dates)
 for n in legal_dates:
     ax.annotate(str(get_imd(n)), (get_axis_date(n), int(get_imd(n))))
 
+# plt - imd_treasury_delta
+ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_imd_treasury_delta, legal_dates)),
+        color='red', linestyle='-', label='imd_treasury_delta')
+ax.scatter(list(map(get_axis_date, legal_dates)), list(map(get_imd_treasury_delta, legal_dates)),
+           marker='o', color='red')
+
 # plt - show
+plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury_delta, legal_dates)),
+                 color='red', alpha=0.25)
 plt.grid(True)
 plt.legend()
+plt.tight_layout()
 plt.show()
 
 """
