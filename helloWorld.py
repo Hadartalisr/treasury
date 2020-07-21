@@ -329,21 +329,41 @@ def get_fed(d):
     return int(d['fed']) / 1000000
 
 
-def update_dates_imd_sub_fed_funding(d):
+def get_super_data(d):
+    return int(d['super_data'])
+
+
+def update_super_data(d):
     for da in d:
-        imd = int(da['imd'])
+        issues = int(da['total_issues'])
+        maturities = int(da['total_maturities'])
         fed = int(da['fed'])
-        if fed == 0:
-            da['imd_sub_fed_funding'] = 0
+        if "issues_after_past_fed" in da:
+            issues = da['issues_after_past_fed']
         else:
+            super_data = 0
+        if fed == 0:
+            da['super_data'] = issues-maturities
+        else:
+            cur_date = da
             while fed > 0: # still need to give back money to treasury
-                if imd <= 0: # the
-                    da['imd_sub_fed_funding'] = 0
+                if issues > 0: # the debt is being returned to the treasury
+                    issue_sub_fed = issues - fed
+                    if issue_sub_fed <= 0: # the fed gives the treasury all the issues it wants
+                        cur_date['issues_after_past_fed'] = 0
+                        fed = fed - issues
+                        cur_date['super_data'] = -maturities
+                    else:
+                        cur_date['issues_after_past_fed'] = issue_sub_fed
+                        fed = 0
+                        cur_date['super_data'] = issue_sub_fed-maturities
                 else:
-                    imd_sub_fed_funding = imd-fed
-                    new_imd = max(imd_sub_fed_funding, 0)
-                    # if
-    return 0
+                    cur_date['super_data'] = -maturities
+                if fed > 0: # need to update cur_date
+                    tomorrow = add_days_and_get_date(cur_date['date'], 1)
+                    tomorrow = get_my_date_from_date(tomorrow)
+                    cur_date = [x for x in d if x['date'] == tomorrow][0]
+
 
 
 def get_imd_treasury_delta(d):
@@ -450,7 +470,7 @@ def update_dates_imd(ds):
 
 
         # The process (main)
-date_range = ['01', '06', '2020', '25', '07', '2020']
+date_range = ['01', '06', '2020', '20', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days_and_get_date(dates[0]['date'], -2)
@@ -458,6 +478,7 @@ maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
 update_dates_treasury_delta(dates)
 update_dates_imd(dates)
 update_dates_fed(dates)
+update_super_data(dates)
 # update_dates_imd_sub_fed_funding(dates)
 print(dates)
 
@@ -501,6 +522,10 @@ plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury
 # plt - fed
 ax.scatter(list(map(get_axis_date, dates)), list(map(get_fed, dates)),
         color='#ebb134', marker='^', label='fed_maturities')
+
+# plt - fed
+ax.plot(list(map(get_axis_date, dates)), list(map(get_super_data, dates)),
+           color='#9542f5', linewidth=3, label='super_data')
 
 for n in dates:
     ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#ebb134')
