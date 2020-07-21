@@ -475,7 +475,7 @@ def update_dates_imd(ds):
 
 
         # The process (main)
-date_range = ['01', '06', '2020', '10', '06', '2020']
+date_range = ['01', '03', '2020', '20', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days_and_get_date(dates[0]['date'], -2)
