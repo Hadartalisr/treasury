@@ -292,7 +292,7 @@ def update_dates_fed(d):
             new_data = get_fed_data(my_date['date'])
             my_date['fed'] = new_data['maturities']
             date = get_date_from_my_date(my_date['date'])
-            if date >= today:
+            if date <= today:
                 fed_data.append(new_data)
         else:
             my_date['fed'] = search_result[0]['maturities']
@@ -330,7 +330,7 @@ def get_fed(d):
 
 
 def get_super_data(d):
-    return int(d['super_data'])
+    return int(d['super_data'])/ 1000000
 
 
 def update_super_data(d):
@@ -362,7 +362,12 @@ def update_super_data(d):
                 if fed > 0: # need to update cur_date
                     tomorrow = add_days_and_get_date(cur_date['date'], 1)
                     tomorrow = get_my_date_from_date(tomorrow)
-                    cur_date = [x for x in d if x['date'] == tomorrow][0]
+                    search_result = [x for x in d if x['date'] == tomorrow]
+                    cur_date = search_result[0]
+                    issues = int(cur_date['total_issues'])
+                    maturities = int(cur_date['total_maturities'])
+                    if "issues_after_past_fed" in da:
+                        issues = da['issues_after_past_fed']
 
 
 
@@ -470,7 +475,7 @@ def update_dates_imd(ds):
 
 
         # The process (main)
-date_range = ['01', '06', '2020', '20', '07', '2020']
+date_range = ['01', '06', '2020', '10', '06', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days_and_get_date(dates[0]['date'], -2)
@@ -524,8 +529,8 @@ ax.scatter(list(map(get_axis_date, dates)), list(map(get_fed, dates)),
         color='#ebb134', marker='^', label='fed_maturities')
 
 # plt - fed
-ax.plot(list(map(get_axis_date, dates)), list(map(get_super_data, dates)),
-           color='#9542f5', linewidth=3, label='super_data')
+ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data, legal_dates)),
+           color='#9542f5', label='super_data')
 
 for n in dates:
     ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#ebb134')
