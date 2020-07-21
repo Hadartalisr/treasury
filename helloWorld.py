@@ -114,6 +114,7 @@ def get_fed_data(date):
     maturities = 0
     try:
         resp = requests.get(excel_url)
+        print(excel_url)
         workbook = xlrd.open_workbook(file_contents=resp.content)
         worksheet = workbook.sheet_by_index(0)
         rows = worksheet.nrows
@@ -126,7 +127,7 @@ def get_fed_data(date):
         maturities = 0
         print("error in get_fed_data: " + date + " .")
     finally:
-        return maturities
+        return {'date': date, 'maturities': maturities}
 
 
 def days_between(d1, d2):
@@ -230,7 +231,7 @@ def get_issues_between_dates(d1, m1, y1, d2, m2, y2):
                                                  int(issue['offeringAmount'])
     return issues_by_date
 
-
+# works for one day only!
 def get_delta_issues_maturities(start_day, start_month, start_year, end_day, end_month, end_year):
     with open('.idea/imdData.json', 'r') as f:
         imd_data = json.load(f)
@@ -252,16 +253,19 @@ def get_delta_issues_maturities(start_day, start_month, start_year, end_day, end
             my_date_day = cur_date_my_format[4:6]
             my_date_month = cur_date_my_format[2:4]
             my_date_year = '20' + cur_date_my_format[0:2]
+            total_issues = 0
+            total_maturities = 0
             maturities = get_maturity_between_dates(my_date_day, my_date_month, my_date_year,
                                                     my_date_day, my_date_month, my_date_year)
             issues = get_issues_between_dates(my_date_day, my_date_month, my_date_year,
                                               my_date_day, my_date_month, my_date_year)
-            new_imd = 0
             for issue in issues:
-                new_imd = new_imd + int(issue['offeringAmount'])
+                total_issues = total_issues + int(issue['offeringAmount'])
             for maturity in maturities:
-                new_imd = new_imd - int(maturity['offeringAmount'])
-            new_imd = {'date': cur_date_my_format, 'imd': new_imd}
+                total_maturities = total_maturities + int(maturity['offeringAmount'])
+            new_imd = total_issues - total_maturities
+            new_imd = {'date': cur_date_my_format, 'total_issues': total_issues, 'total_maturities': total_maturities,
+                       'imd': new_imd}
             imd.append(new_imd)
             if not is_future_date:
                 imd_data.append(new_imd)
@@ -273,6 +277,28 @@ def get_delta_issues_maturities(start_day, start_month, start_year, end_day, end
     with open('.idea/imdData.json', 'w') as f:
         json.dump(y, f)
     return imd
+
+
+# d - dates objects
+def update_dates_fed(d):
+    today = datetime.date.today()
+    with open('.idea/fedData.json', 'r') as f:
+        fed_data = json.load(f)
+        fed_data = json.loads(fed_data)
+    for my_date in d:
+        search_result = [x for x in fed_data if x['date'] == my_date['date']]
+        # new date
+        if len(search_result) == 0:
+            new_data = get_fed_data(my_date['date'])
+            my_date['fed'] = new_data['maturities']
+            date = get_date_from_my_date(my_date['date'])
+            if date >= today:
+                fed_data.append(new_data)
+        else:
+            my_date['fed'] = search_result[0]['maturities']
+    y = json.dumps(fed_data)
+    with open('.idea/fedData.json', 'w') as f:
+        json.dump(y, f)
 
 
 # region axisAndJson
@@ -287,8 +313,37 @@ def get_treasury_delta_from_obj(d):
     return float(d['treasury_delta'])
 
 
+def get_total_issues(d):
+    return int(d['total_issues']) / 1000000
+
+
+def get_total_maturities(d):
+    return int(d['total_maturities']) / 1000000
+
+
 def get_imd(d):
     return int(d['imd']) / 1000000
+
+
+def get_fed(d):
+    return int(d['fed']) / 1000000
+
+
+def update_dates_imd_sub_fed_funding(d):
+    for da in d:
+        imd = int(da['imd'])
+        fed = int(da['fed'])
+        if fed == 0:
+            da['imd_sub_fed_funding'] = 0
+        else:
+            while fed > 0: # still need to give back money to treasury
+                if imd <= 0: # the
+                    da['imd_sub_fed_funding'] = 0
+                else:
+                    imd_sub_fed_funding = imd-fed
+                    new_imd = max(imd_sub_fed_funding, 0)
+                    # if
+    return 0
 
 
 def get_imd_treasury_delta(d):
@@ -375,9 +430,13 @@ def update_dates_imd(ds):
             while not imd_was_inserted:
                 if date['is_legal_date']:
                     date['imd'] = search_result[0]['imd']
+                    date['total_issues'] = search_result[0]['total_issues']
+                    date['total_maturities'] = search_result[0]['total_maturities']
                     imd_was_inserted = True
                 else:
                     date['imd'] = 0
+                    date['total_issues'] = 0
+                    date['total_maturities'] = 0
                     my_date_day = date['date'][4:6]
                     my_date_month = date['date'][2:4]
                     my_date_year = '20' + date['date'][0:2]
@@ -386,18 +445,21 @@ def update_dates_imd(ds):
                     date = [d for d in ds if d['date'] == get_my_date_from_date(my_date)][0]
         else:
             date['imd'] = 0
+            date['total_issues'] = 0
+            date['total_maturities'] = 0
 
 
-# The process (main)
-date_range = ['01', '06', '2020', '18', '07', '2020']
+        # The process (main)
+date_range = ['01', '06', '2020', '25', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days_and_get_date(dates[0]['date'], -2)
 maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
 update_dates_treasury_delta(dates)
 update_dates_imd(dates)
-for date in dates:
-    print(date['date'] + ' ' + str(get_fed_data(date['date'])))
+update_dates_fed(dates)
+# update_dates_imd_sub_fed_funding(dates)
+print(dates)
 
 
 # plt - x axis
@@ -417,28 +479,33 @@ plt.scatter(list(map(get_axis_date, illegal_dates)), list(map((lambda x: 0), ill
 # plt - treasury_delta
 plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
          color='blue', linestyle='-', label='treasury_delta')
-plt.scatter(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
-            marker='o', color='blue')
 for n in legal_dates:
-    plt.annotate(str(n['treasury_delta']), (get_axis_date(n), n['treasury_delta']))
+    plt.annotate(str(int(n['treasury_delta'])), (get_axis_date(n), n['treasury_delta']),color='blue')
 
-# plt - imd
+# plt - issues + maturities + imd
+
+ax.scatter(list(map(get_axis_date, legal_dates)), list(map(get_total_issues, legal_dates)), marker='^',
+           color='green', label='issues')
+ax.scatter(list(map(get_axis_date, legal_dates)), list(map(get_total_maturities, legal_dates)), marker='^',
+           color='red', label='maturities')
 ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_imd, legal_dates)),
         color='green', linestyle='--', label='imd')
-ax.scatter(list(map(get_axis_date, legal_dates)), list(map(get_imd, legal_dates)),
-           marker='o', color='green')
+
 for n in legal_dates:
-    ax.annotate(str(get_imd(n)), (get_axis_date(n), int(get_imd(n))))
+    ax.annotate(str(int(get_imd(n))), (get_axis_date(n), int(get_imd(n))),color='green')
 
-# plt - imd_treasury_delta
-ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_imd_treasury_delta, legal_dates)),
-        color='red', linestyle='-', label='imd_treasury_delta')
-ax.scatter(list(map(get_axis_date, legal_dates)), list(map(get_imd_treasury_delta, legal_dates)),
-           marker='o', color='red')
 
-# plt - show
 plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury_delta, legal_dates)),
-                 color='red', alpha=0.25)
+                 color='red', alpha=0.15)
+
+# plt - fed
+ax.scatter(list(map(get_axis_date, dates)), list(map(get_fed, dates)),
+        color='#ebb134', marker='^', label='fed_maturities')
+
+for n in dates:
+    ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#ebb134')
+
+
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
