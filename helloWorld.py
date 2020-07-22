@@ -40,6 +40,21 @@ def add_days_and_get_date(date, days_to_add):
     return date
 
 
+# date in my date format
+def get_day_from_my_date(d):
+    return d[4:6]
+
+
+# date in my date format
+def get_month_from_my_date(d):
+    return d[2:4]
+
+
+# date in my date format
+def get_year_from_my_date(d):
+    return '20' + d[0:2]
+
+
 def get_treasury_url(days_to_sub):
     x = get_date_format(days_to_sub)
     url = 'https://fsapps.fiscal.treasury.gov/dts/files/' + x + '.xlsx'
@@ -160,6 +175,63 @@ def get_snp_list():
         delta = round(float(my_list[idx][4]) - float(my_list[idx][1]), 2)
         my_list[idx] = {'date': date, 'delta': delta}
     return my_list
+
+
+# date in my_date format
+def get_fed_acceptance_url(date):
+    day = get_day_from_my_date(date)
+    month = get_month_from_my_date(date)
+    year = get_year_from_my_date(date)
+    url = 'https://markets.newyorkfed.org/api/pomo/all/results/details/search.xlsx?' + \
+        'startdate=' + month + '/' + day + '/' + year + \
+        '&enddate=' + month + '/' + day + '/' + year + '&securityType=treasury'
+    return url
+
+
+def get_fed_schedule_url():
+    url = 'https://www.newyorkfed.org/medialibrary/media/markets/treasury-securities-schedule/current-schedule.csv'
+    return url
+
+
+# date in my_date format
+def get_fed_acceptance_per_settlement_day(date):
+    acceptance = 0
+    today = datetime.date.today()
+    cur_date = get_date_from_my_date(date)
+    cur_date = add_days_and_get_date(date, -1)
+    if cur_date < today: # need the get the operation date of the day before
+        cur_date = get_my_date_from_date(cur_date)
+        excel_url = get_fed_acceptance_url(cur_date)
+        try:
+            resp = requests.get(excel_url)
+            print(excel_url)
+            workbook = xlrd.open_workbook(file_contents=resp.content)
+            worksheet = workbook.sheet_by_index(0)
+            rows = worksheet.nrows
+            for i in range (1, rows):
+                val = int(worksheet.cell(rowx=i, colx=11).value)
+                acceptance = acceptance + val
+        except Exception as e:
+            print(e)
+            print("error in past get_fed_acceptance_per_settlement_day: " + date + " .")
+    elif cur_date-today < 15: # might be in the schedule
+        excel_url = get_fed_schedule_url()
+        try:
+            resp = requests.get(excel_url)
+            print(excel_url)
+            workbook = xlrd.open_workbook(file_contents=resp.content)
+            worksheet = workbook.sheet_by_index(0)
+            rows = worksheet.nrows
+            for i in range (1, rows):
+                acceptance = acceptance + int(worksheet.cell(rowx=i, colx=11).value)
+        except Exception as e:
+            print(e)
+            print("error in future get_fed_acceptance_per_settlement_day: " + date + " .")
+    else:
+        acceptance = 0
+    return acceptance
+
+
 
 
 def get_maturity_between_dates(d1, m1, y1, d2, m2, y2):
@@ -490,7 +562,7 @@ def update_dates_imd(ds):
 
 
         # The process (main)
-date_range = ['01', '03', '2020', '20', '07', '2020']
+date_range = ['15', '07', '2020', '18', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days_and_get_date(dates[0]['date'], -2)
@@ -499,8 +571,11 @@ update_dates_treasury_delta(dates)
 update_dates_imd(dates)
 update_dates_fed(dates)
 update_super_data(dates)
-# update_dates_imd_sub_fed_funding(dates)
 print(dates)
+
+s = get_fed_acceptance_per_settlement_day(dates[0]['date'])
+print(s)
+# update_dates_imd_sub_fed_funding(dates)
 
 
 # plt - x axis
