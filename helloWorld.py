@@ -333,6 +333,21 @@ def get_super_data(d):
     return int(d['super_data'])/ 1000000
 
 
+def get_dates_with_maturities_gtz(d):
+    search_result = [x for x in d if x['total_maturities'] > 0]
+    return search_result
+
+
+def get_dates_with_issues_gtz(d):
+    search_result = [x for x in d if x['total_issues'] > 0]
+    return search_result
+
+
+def get_dates_with_fed_gtz(d):
+    search_result = [x for x in d if x['fed'] > 0]
+    return  search_result
+
+
 def update_super_data(d):
     for da in d:
         issues = int(da['total_issues'])
@@ -497,10 +512,13 @@ ax.set_xlim([minDate, maxDate])
 # calculate dates
 illegal_dates = [x for x in dates if x['is_legal_date'] is False]
 legal_dates = [x for x in dates if x['is_legal_date'] is True]
+fed_dates = get_dates_with_fed_gtz(dates)
+issues_dates = get_dates_with_issues_gtz(dates)
 
 # plt - illegal_dates
 plt.scatter(list(map(get_axis_date, illegal_dates)), list(map((lambda x: 0), illegal_dates)),
-            marker='o', color='#a832a4')
+            marker='o', color='grey')
+
 
 # plt - treasury_delta
 plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
@@ -508,32 +526,32 @@ plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from
 for n in legal_dates:
     plt.annotate(str(int(n['treasury_delta'])), (get_axis_date(n), n['treasury_delta']),color='blue')
 
-# plt - issues + maturities + imd
 
-ax.scatter(list(map(get_axis_date, legal_dates)), list(map(get_total_issues, legal_dates)), marker='^',
+# plt - issues + maturities + imd
+ax.scatter(list(map(get_axis_date, issues_dates)), list(map(get_total_issues, issues_dates)), marker='^',
            color='green', label='issues')
-ax.scatter(list(map(get_axis_date, legal_dates)), list(map(get_total_maturities, legal_dates)), marker='^',
+ax.scatter(list(map(get_axis_date, issues_dates)), list(map(get_total_maturities, issues_dates)), marker='v',
            color='red', label='maturities')
 ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_imd, legal_dates)),
         color='green', linestyle='--', label='imd')
 
 for n in legal_dates:
-    ax.annotate(str(int(get_imd(n))), (get_axis_date(n), int(get_imd(n))),color='green')
+    ax.annotate(str(int(get_imd(n))), (get_axis_date(n), int(get_imd(n))), color='green')
 
-
+# when there is no correlation
 plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury_delta, legal_dates)),
                  color='red', alpha=0.15)
 
 # plt - fed
-ax.scatter(list(map(get_axis_date, dates)), list(map(get_fed, dates)),
+ax.scatter(list(map(get_axis_date, fed_dates)), list(map(get_fed, fed_dates)),
         color='#ebb134', marker='^', label='fed_maturities')
 
-# plt - fed
+for n in fed_dates:
+    ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#ebb134')
+
+# plt - SUPER DATA
 ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data, legal_dates)),
            color='#9542f5', label='super_data')
-
-for n in dates:
-    ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#ebb134')
 
 
 plt.grid(True)
@@ -542,112 +560,11 @@ plt.tight_layout()
 plt.show()
 
 
-
-"""
-# maturities
-ax.plot(list(map(get_date, maturities)),list(map(get_offeringAmount, maturities)))
-ax.scatter(list(map(get_date, delta_issues_maturities)), list(map(get_offeringAmount, delta_issues_maturities)), \
-           marker='^', color='blue')
-for n in delta_issues_maturities:
-    ax.annotate(str(int(n['offeringAmount'])/1000000), (n['date'], int(n['offeringAmount'])/1000000))
-
-
-# issues
-# ax.plot(list(map(get_date, maturities)),list(map(get_offeringAmount, maturities)))
-#ax.scatter(list(map(get_date, issues)), list(map(get_offeringAmount, issues)), marker='^')
-#for n in issues:
-#    ax.annotate(str(int(n['offeringAmount'])/1000000), (n['date'], int(n['offeringAmount'])/1000000))
-
-
-
-# treasury_data
-# ax.plot(list(map(get_date, treasury_data)), list(map(get_delta, treasury_data)))
-ax.scatter(list(map(get_date, treasury_data)), list(map(get_delta, treasury_data)), marker='o', color='red')
-for n in treasury_data:
-    ax.annotate(str(n['delta']), (n['date'], n['delta']))
-"""
-
-"""
-start_month = input()
-start_year = input()
-end_day = input()
-end_month = input()
-end_year = input()
-# generateDates()
-
-print(start_day + start_month + start_year + end_day + end_month + end_year)
-"""
-"""
-delta_issues_maturities = get_delta_issues_maturities("10", "07", "2020", "25", "07", "2020")
-snp_data = get_snp_list()
-treasury_data = get_treasury_list(365)
-
-print(delta_issues_maturities)
-print(treasury_data)
-
-fig, ax = plt.subplots()
-
-# x axis
-plt.axhline(y=0, color='black', linestyle='-')
-
-# maturities
-# ax.plot(list(map(get_date, maturities)),list(map(get_offeringAmount, maturities)))
-ax.scatter(list(map(get_date, delta_issues_maturities)), list(map(get_offeringAmount, delta_issues_maturities)), \
-           marker='^', color='blue')
-for n in delta_issues_maturities:
-    ax.annotate(str(int(n['offeringAmount'])/1000000), (n['date'], int(n['offeringAmount'])/1000000))
-
-
-# issues
-# ax.plot(list(map(get_date, maturities)),list(map(get_offeringAmount, maturities)))
-#ax.scatter(list(map(get_date, issues)), list(map(get_offeringAmount, issues)), marker='^')
-#for n in issues:
-#    ax.annotate(str(int(n['offeringAmount'])/1000000), (n['date'], int(n['offeringAmount'])/1000000))
-
-
-
-# treasury_data
-# ax.plot(list(map(get_date, treasury_data)), list(map(get_delta, treasury_data)))
-ax.scatter(list(map(get_date, treasury_data)), list(map(get_delta, treasury_data)), marker='o', color='red')
-for n in treasury_data:
-    ax.annotate(str(n['delta']), (n['date'], n['delta']))
-"""
-
 print('thank you')
 
-"""
-X = np.array(males)
-tree = KDTree(X)
-
-# the beginning of the interaction with the user
-print('what is the x coordinate?')
-xQuery = int(input())
-print('what is the y coordinate?')
-yQuery = int(input())
-myPoint = (xQuery, yQuery)
-print('what is the k?')
-k = int(input())
-
-# the query
-dist, ind = tree.query([[xQuery, yQuery]], k=k)
-distanceArr = dist[0]
-nearestArr = getnearestsarr(X, ind)
-
-# add the nearest friend
-ax.scatter(list(map(getxaxis, nearestArr)), list(map(getyaxis, nearestArr)), marker='^')
-for n in nearestArr:
-    ax.annotate('nearest', n)
-
-# add my point
-ax.scatter([xQuery], [yQuery], marker='^')
-ax.annotate('myPoint', myPoint)
-
-# add the circle around
-circle1 = plt.Circle(myPoint, max(distanceArr), color='g', clip_on=False)
-# ax.add_artist(circle1)
 
 """
-"""
+
 # snp data
 # ax.plot(list(map(get_date, snp_data)), list(map(get_snp_delta, snp_data)))
 ax.scatter(list(map(get_date, snp_data)), list(map(get_snp_delta, snp_data)), marker='o', color='orange')
