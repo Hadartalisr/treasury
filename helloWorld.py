@@ -97,13 +97,22 @@ def get_treasury_list(days_to_sub):
     return data
 
 
-# date in my_date format - return last date in my_date format
+# date in my_date format - return last wed in my_date format
 def get_last_wedensday(date):
     cur_date = add_days_and_get_date(date, 0)
     if cur_date.weekday() == 2:
         cur_date = cur_date - datetime.timedelta(days=1)
     while cur_date.weekday() != 2:
         cur_date = cur_date - datetime.timedelta(days=1)
+    cur_date = get_my_date_from_date(cur_date)
+    return cur_date
+
+
+# date in my_date format - return next wed in my_date format
+def get_next_or_today_wedensday():
+    cur_date = datetime.date.today()
+    while cur_date.weekday() != 2:
+        cur_date = cur_date + datetime.timedelta(days=1)
     cur_date = get_my_date_from_date(cur_date)
     return cur_date
 
@@ -121,28 +130,27 @@ def get_fed_url(date):
 
 # date in my_date format
 def get_fed_data(date):
-    excel_url = get_fed_url(date)
-    my_day = date[4:6]
-    my_month = date[2:4]
-    my_year = '20' + date[0:2]
-    date_in_excel = my_year+'-'+my_month+'-'+my_day
+    next_wed = get_next_or_today_wedensday()
     maturities = 0
-    try:
-        resp = requests.get(excel_url)
-        print(excel_url)
-        workbook = xlrd.open_workbook(file_contents=resp.content)
-        worksheet = workbook.sheet_by_index(0)
-        rows = worksheet.nrows
-        for i in range (0,rows):
-            cell_date = worksheet.cell(rowx=i, colx=3).value
-            if cell_date == date_in_excel:
-                maturities = maturities + int(worksheet.cell(rowx=i, colx=7).value)
-    except Exception as e:
-        print(e)
-        maturities = 0
-        print("error in get_fed_data: " + date + " .")
-    finally:
-        return {'date': date, 'maturities': maturities}
+    if date <= next_wed:
+        excel_url = get_fed_url(date)
+        my_day = date[4:6]
+        my_month = date[2:4]
+        my_year = '20' + date[0:2]
+        date_in_excel = my_year+'-'+my_month+'-'+my_day
+        try:
+            resp = requests.get(excel_url)
+            print(excel_url)
+            workbook = xlrd.open_workbook(file_contents=resp.content)
+            worksheet = workbook.sheet_by_index(0)
+            rows = worksheet.nrows
+            for i in range(0, rows):
+                cell_date = worksheet.cell(rowx=i, colx=3).value
+                if cell_date == date_in_excel:
+                    maturities = maturities + int(worksheet.cell(rowx=i, colx=7).value)
+        except Exception as e:
+            print("error in get_fed_data: " + date + " .")
+    return {'date': date, 'maturities': maturities}
 
 
 def days_between(d1, d2):
@@ -198,7 +206,7 @@ def get_fed_acceptance_per_settlement_day(date):
     acceptance = 0
     today = datetime.date.today()
     cur_date = get_date_from_my_date(date)
-    cur_date = add_days_and_get_date(date, -1)
+    cur_date = cur_date - datetime.timedelta(days=1)
     if cur_date < today: # need the get the operation date of the day before
         cur_date = get_my_date_from_date(cur_date)
         excel_url = get_fed_acceptance_url(cur_date)
@@ -208,30 +216,48 @@ def get_fed_acceptance_per_settlement_day(date):
             workbook = xlrd.open_workbook(file_contents=resp.content)
             worksheet = workbook.sheet_by_index(0)
             rows = worksheet.nrows
-            for i in range (1, rows):
-                val = int(worksheet.cell(rowx=i, colx=11).value)
-                acceptance = acceptance + val
-        except Exception as e:
-            print(e)
-            print("error in past get_fed_acceptance_per_settlement_day: " + date + " .")
-    elif cur_date-today < 15: # might be in the schedule
-        excel_url = get_fed_schedule_url()
-        try:
-            resp = requests.get(excel_url)
-            print(excel_url)
-            workbook = xlrd.open_workbook(file_contents=resp.content)
-            worksheet = workbook.sheet_by_index(0)
-            rows = worksheet.nrows
-            for i in range (1, rows):
-                acceptance = acceptance + int(worksheet.cell(rowx=i, colx=11).value)
-        except Exception as e:
-            print(e)
-            print("error in future get_fed_acceptance_per_settlement_day: " + date + " .")
+            for i in range(1, rows):
+                val = worksheet.cell(rowx=i, colx=11).value
+                try:
+                    val = int(val)
+                    acceptance = acceptance + val
+                except Exception:
+                    print('')
+        except Exception:
+            print('')
+    elif (cur_date-today).days < 15: # might be in the schedule
+        cur_date = get_my_date_from_date(cur_date)
+        csv_url = get_fed_schedule_url()
+        response = requests.get(csv_url)
+        decoded_content = response.content.decode('utf-8')
+        cr = csv.reader(decoded_content.splitlines(), delimiter=',')
+        my_list = list(cr)
+        for row in my_list:
+            print(row)
     else:
         acceptance = 0
     return acceptance
 
 
+def update_dates_fed_acceptance(da):
+    with open('.idea/fedAcceptanceData.json', 'r') as f:
+        fed_acceptance_data = json.load(f)
+        fed_acceptance_data = json.loads(fed_acceptance_data)
+    for d in da:
+        search_result = [x for x in fed_acceptance_data if x['date'] == d['date']]
+        if len(search_result) == 0: # need to bring new data from the web
+            fed_acceptance = get_fed_acceptance_per_settlement_day(d['date'])
+            fed_acceptance_data.append({'date': d['date'], 'fed_acceptance' : fed_acceptance})
+            d['fed_acceptance'] = fed_acceptance
+        else:
+            d['fed_acceptance'] = search_result[0]['fed_acceptance']
+        is_legal_date = bool(d['is_legal_date'])
+        weekday = get_date_from_my_date(d['date']).weekday()
+        if d['fed_acceptance'] == 0 and is_legal_date and weekday not in (5, 6, 0):
+            print('fed_acceptance error in date:' + d['date'])
+    y = json.dumps(fed_acceptance_data)
+    with open('.idea/fedAcceptanceData.json', 'w') as f:
+        json.dump(y, f)
 
 
 def get_maturity_between_dates(d1, m1, y1, d2, m2, y2):
@@ -302,6 +328,7 @@ def get_issues_between_dates(d1, m1, y1, d2, m2, y2):
             search_result[0]['offeringAmount'] = int(search_result[0]['offeringAmount']) + \
                                                  int(issue['offeringAmount'])
     return issues_by_date
+
 
 # works for one day only!
 def get_delta_issues_maturities(start_day, start_month, start_year, end_day, end_month, end_year):
@@ -562,7 +589,7 @@ def update_dates_imd(ds):
 
 
         # The process (main)
-date_range = ['15', '07', '2020', '18', '07', '2020']
+date_range = ['15', '07', '2020', '23', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days_and_get_date(dates[0]['date'], -2)
@@ -573,9 +600,9 @@ update_dates_fed(dates)
 update_super_data(dates)
 print(dates)
 
-s = get_fed_acceptance_per_settlement_day(dates[0]['date'])
-print(s)
-# update_dates_imd_sub_fed_funding(dates)
+update_dates_fed_acceptance(dates)
+print(dates)
+
 
 
 # plt - x axis
