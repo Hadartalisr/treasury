@@ -233,7 +233,6 @@ def get_fed_acceptance_per_settlement_day(date):
         cr = csv.reader(decoded_content.splitlines(), delimiter=',')
         my_list = list(cr)
         for row in my_list:
-            print(row)
             if row[0] == str(cur_date.month)+'/'+str(cur_date.day)+'/'+str(cur_date.year):
                 acceptance = acceptance + int(float(re.findall('\d+\.\d+', row[6])[0])*1000000000)
     else:
@@ -448,7 +447,16 @@ def get_dates_with_issues_gtz(d):
 
 def get_dates_with_fed_gtz(d):
     search_result = [x for x in d if x['fed'] > 0]
-    return  search_result
+    return search_result
+
+
+def get_dates_with_fed_acceptance_gtz(d):
+    search_result = [x for x in d if x['fed_acceptance'] > 0]
+    return search_result
+
+
+def get_fed_acceptance(d):
+    return d['fed_acceptance'] / 1000000
 
 
 def update_super_data(d):
@@ -593,7 +601,7 @@ def update_dates_imd(ds):
 
 
         # The process (main)
-date_range = ['15', '07', '2020', '25', '07', '2020']
+date_range = ['01', '07', '2020', '25', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days_and_get_date(dates[0]['date'], -2)
@@ -602,11 +610,16 @@ update_dates_treasury_delta(dates)
 update_dates_imd(dates)
 update_dates_fed(dates)
 update_super_data(dates)
-print(dates)
-
 update_dates_fed_acceptance(dates)
 print(dates)
 
+
+# calculate dates
+illegal_dates = [x for x in dates if x['is_legal_date'] is False]
+legal_dates = [x for x in dates if x['is_legal_date'] is True]
+fed_dates = get_dates_with_fed_gtz(dates)
+issues_dates = get_dates_with_issues_gtz(dates)
+fed_acceptance_dates = get_dates_with_fed_acceptance_gtz(dates)
 
 
 # plt - x axis
@@ -615,11 +628,6 @@ ax.axhline(y=0, color='black', linestyle='-')
 plt.xlabel('date')
 ax.set_xlim([minDate, maxDate])
 
-# calculate dates
-illegal_dates = [x for x in dates if x['is_legal_date'] is False]
-legal_dates = [x for x in dates if x['is_legal_date'] is True]
-fed_dates = get_dates_with_fed_gtz(dates)
-issues_dates = get_dates_with_issues_gtz(dates)
 
 # plt - illegal_dates
 plt.scatter(list(map(get_axis_date, illegal_dates)), list(map((lambda x: 0), illegal_dates)),
@@ -648,12 +656,20 @@ for n in legal_dates:
 plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury_delta, legal_dates)),
                  color='red', alpha=0.15)
 
+
 # plt - fed
 ax.scatter(list(map(get_axis_date, fed_dates)), list(map(get_fed, fed_dates)),
         color='#ebb134', marker='^', label='fed_maturities')
-
 for n in fed_dates:
     ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#ebb134')
+
+
+#plt - fed_acceptance
+ax.scatter(list(map(get_axis_date, fed_acceptance_dates)), list(map(get_fed_acceptance, fed_acceptance_dates)),
+           color='#a10e9a', marker='H', label='fed_acceptance')
+for n in fed_acceptance_dates:
+    ax.annotate(str(int(get_fed_acceptance(n))), (get_axis_date(n), int(get_fed_acceptance(n))), color='#a10e9a')
+
 
 # plt - SUPER DATA
 ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data, legal_dates)),
@@ -662,7 +678,6 @@ ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data, legal_da
 
 plt.grid(True)
 plt.legend()
-plt.tight_layout()
 plt.show()
 
 
