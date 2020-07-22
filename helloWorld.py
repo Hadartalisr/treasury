@@ -8,6 +8,7 @@ import xlrd
 import csv
 from pandas.tseries.holiday import USFederalHolidayCalendar
 import sys
+import re
 
 def get_date_format(days_to_sub):
     x = datetime.datetime.today() - datetime.timedelta(days=days_to_sub)
@@ -226,7 +227,6 @@ def get_fed_acceptance_per_settlement_day(date):
         except Exception:
             print('')
     elif (cur_date-today).days < 15: # might be in the schedule
-        cur_date = get_my_date_from_date(cur_date)
         csv_url = get_fed_schedule_url()
         response = requests.get(csv_url)
         decoded_content = response.content.decode('utf-8')
@@ -234,6 +234,8 @@ def get_fed_acceptance_per_settlement_day(date):
         my_list = list(cr)
         for row in my_list:
             print(row)
+            if row[0] == str(cur_date.month)+'/'+str(cur_date.day)+'/'+str(cur_date.year):
+                acceptance = acceptance + int(float(re.findall('\d+\.\d+', row[6])[0])*1000000000)
     else:
         acceptance = 0
     return acceptance
@@ -247,13 +249,15 @@ def update_dates_fed_acceptance(da):
         search_result = [x for x in fed_acceptance_data if x['date'] == d['date']]
         if len(search_result) == 0: # need to bring new data from the web
             fed_acceptance = get_fed_acceptance_per_settlement_day(d['date'])
-            fed_acceptance_data.append({'date': d['date'], 'fed_acceptance' : fed_acceptance})
             d['fed_acceptance'] = fed_acceptance
+            if get_date_from_my_date(d['date']) <= datetime.date.today():
+                fed_acceptance_data.append({'date': d['date'], 'fed_acceptance' : fed_acceptance})
         else:
             d['fed_acceptance'] = search_result[0]['fed_acceptance']
         is_legal_date = bool(d['is_legal_date'])
         weekday = get_date_from_my_date(d['date']).weekday()
-        if d['fed_acceptance'] == 0 and is_legal_date and weekday not in (5, 6, 0):
+        if d['fed_acceptance'] == 0 and is_legal_date and weekday not in (5, 6, 0) \
+                and get_date_from_my_date(d['date']) < datetime.date.today() + datetime.timedelta(days=7) :
             print('fed_acceptance error in date:' + d['date'])
     y = json.dumps(fed_acceptance_data)
     with open('.idea/fedAcceptanceData.json', 'w') as f:
@@ -589,7 +593,7 @@ def update_dates_imd(ds):
 
 
         # The process (main)
-date_range = ['15', '07', '2020', '23', '07', '2020']
+date_range = ['15', '07', '2020', '25', '07', '2020']
 # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 dates = generate_dates(date_range)
 minDate = add_days_and_get_date(dates[0]['date'], -2)
