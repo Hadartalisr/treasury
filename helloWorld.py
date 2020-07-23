@@ -466,7 +466,7 @@ def get_super_data_mbs(d):
 
 
 def get_super_data_mbs_swap(d):
-    return int(d['super_data_mbs_swap'])/ 1000000
+    return int(d['super_data_mbs_swap'])/1000000
 
 
 def get_minus_super_data_mbs(d):
@@ -503,8 +503,8 @@ def get_dates_with_mbs_acceptance_gtz(d):
     return search_result
 
 
-def get_dates_with_swap_gtz(d):
-    search_result = [x for x in d if x['swap'] > 0]
+def get_dates_with_swap_neqz(d):
+    search_result = [x for x in d if x['swap'] != 0]
     return search_result
 
 
@@ -517,7 +517,7 @@ def get_mbs(d):
 
 
 def get_swap(d):
-    return d['swap']
+    return d['swap']/ 1000000
 
 
 def update_super_data(d):
@@ -574,8 +574,8 @@ def update_super_data_mbs(d):
 def update_super_data_mbs_swap(d):
     for date in d:
         super_data_mbs = date['super_data_mbs']
-        swap = get_swap(date)
-        date['super_data_mbs_swap'] = int(super_data_mbs) + int(swap)
+        swap = date['swap']
+        date['super_data_mbs_swap'] = int(super_data_mbs) - int(swap)
 
 
 def get_imd_treasury_delta(d):
@@ -732,7 +732,7 @@ def update_swap_delta(d):
     for date in d:
         search_results = [x for x in swap_data if x['Date'] == date['date']]
         if len(search_results) > 0:
-            date['swap'] = search_results[0]['Total_Amount_Outstanding']
+            date['swap'] = int(search_results[0]['Total_Amount_Outstanding'])*1000000
         else:
             date['swap'] = 0
 
@@ -774,7 +774,7 @@ def main(date_range, type):
     maturities_dates = get_dates_with_maturities_gtz(dates)
     fed_acceptance_dates = get_dates_with_fed_acceptance_gtz(dates)
     mbs_dates = get_dates_with_mbs_acceptance_gtz(dates)
-    swap_dates = get_dates_with_swap_gtz(dates)
+    swap_dates = get_dates_with_swap_neqz(dates)
 
     # plt - x axis
     fig, ax = plt.subplots()
@@ -787,12 +787,13 @@ def main(date_range, type):
                 marker='o', color='grey')
 
     if type == 0:
+        """
         # plt - treasury_delta
         plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
                  color='blue', linestyle='-', label='treasury_delta')
         for n in legal_dates:
             plt.annotate(str(int(n['treasury_delta'])), (get_axis_date(n), n['treasury_delta']),color='blue')
-
+        
         # plt - issues + maturities + imd
         ax.scatter(list(map(get_axis_date, issues_dates)), list(map(get_total_issues, issues_dates)),
                    marker='^', color='green', label='issues')
@@ -840,7 +841,7 @@ def main(date_range, type):
         # plt - SUPER DATA MBS
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs, legal_dates)),
                 color='#824a00', label='super_data_mbs')
-
+        """
         # plt - SUPER DATA MBS SWAP
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
                 color='#2a5859', label='super_data_mbs_swap')
