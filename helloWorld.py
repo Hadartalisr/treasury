@@ -99,8 +99,8 @@ def get_treasury_list(days_to_sub):
 
 
 # date in my_date format - return last wed in my_date format
-def get_last_wedensday(date):
-    cur_date = add_days_and_get_date(date, 0)
+def get_last_wedensday(date, weeks):
+    cur_date = add_days_and_get_date(date, weeks*(-7))
     if cur_date.weekday() == 2:
         cur_date = cur_date - datetime.timedelta(days=1)
     while cur_date.weekday() != 2:
@@ -118,9 +118,9 @@ def get_next_or_today_wedensday():
     return cur_date
 
 
-# date in my_date format
-def get_fed_url(date):
-    wed_date = get_last_wedensday(date)
+# date in my_date format , weeks : number is the reverse weeks from last wed date - 0 by default,
+def get_fed_url(date, weeks):
+    wed_date = get_last_wedensday(date, weeks)
     wed_date_day = wed_date[4:6]
     wed_date_month = wed_date[2:4]
     wed_date_year = '20' + wed_date[0:2]
@@ -129,29 +129,75 @@ def get_fed_url(date):
     return url
 
 
-# date in my_date format
-def get_fed_data(date):
-    next_wed = get_next_or_today_wedensday()
-    maturities = 0
-    if date <= next_wed:
-        excel_url = get_fed_url(date)
-        my_day = date[4:6]
-        my_month = date[2:4]
-        my_year = '20' + date[0:2]
-        date_in_excel = my_year+'-'+my_month+'-'+my_day
+def get_fed_url_content(excel_date):
+    content = 0
+    succeed = False
+    weeks = 0
+    number_of_retries = 3
+    excel_url = get_fed_url(excel_date, weeks)
+    while not succeed and weeks < number_of_retries:
         try:
             resp = requests.get(excel_url)
-            print(excel_url)
-            workbook = xlrd.open_workbook(file_contents=resp.content)
-            worksheet = workbook.sheet_by_index(0)
-            rows = worksheet.nrows
-            for i in range(0, rows):
-                cell_date = worksheet.cell(rowx=i, colx=3).value
-                if cell_date == date_in_excel:
-                    maturities = maturities + int(worksheet.cell(rowx=i, colx=7).value)
-        except Exception as e:
-            print("error in get_fed_data: " + date + " .")
+            succeed = resp.status_code == 200
+            if not succeed:
+                if weeks < number_of_retries:
+                    print("excel url: " + excel_url + ' doesnt exist for ' + excel_date +
+                          ". searching in the week before")
+                    weeks = weeks+1
+                    excel_url = get_fed_url(excel_date, weeks)
+                else:
+                    print("ERROR : " + excel_url + ' doesnt exist for ' + excel_date + ".")
+                    break
+            else:
+                content = resp.content
+        except Exception:
+            print("ERROR : exception in get_fed_data for date:" + excel_url + ".")
+    return content
+
+
+# date in my_date format
+def get_fed_data(date, future_content):
+    next_wed = get_next_or_today_wedensday()
+    maturities = 0
+    if date <= get_my_date_from_date(datetime.date.today()):
+        content = get_fed_url_content(date)
+    else:
+        content = future_content
+    my_day = date[4:6]
+    my_month = date[2:4]
+    my_year = '20' + date[0:2]
+    date_in_excel = my_year+'-'+my_month+'-'+my_day
+    workbook = xlrd.open_workbook(file_contents=content)
+    worksheet = workbook.sheet_by_index(0)
+    rows = worksheet.nrows
+    for i in range(0, rows):
+        cell_date = worksheet.cell(rowx=i, colx=3).value
+        if cell_date == date_in_excel:
+            maturities = maturities + int(worksheet.cell(rowx=i, colx=7).value)
     return {'date': date, 'maturities': maturities}
+
+
+# d - dates objects
+def update_dates_fed(d):
+    today = datetime.date.today()
+    future_content = get_fed_url_content(get_my_date_from_date(today))
+    with open('.idea/fedData.json', 'r') as f:
+        fed_data = json.load(f)
+        fed_data = json.loads(fed_data)
+    for my_date in d:
+        search_result = [x for x in fed_data if x['date'] == my_date['date']]
+        # new date
+        if len(search_result) == 0:
+            new_data = get_fed_data(my_date['date'], future_content)
+            my_date['fed'] = new_data['maturities']
+            date = get_date_from_my_date(my_date['date'])
+            if date < today:
+                fed_data.append(new_data)
+        else:
+            my_date['fed'] = search_result[0]['maturities']
+    y = json.dumps(fed_data)
+    with open('.idea/fedData.json', 'w') as f:
+        json.dump(y, f)
 
 
 def days_between(d1, d2):
@@ -162,8 +208,9 @@ def get_snp_url():
     july_eighteen_period2 = 1595030400
     july_eighteen_period1 = 1563408000
     today = datetime.datetime.today()
-    ref = datetime.datetime(2020, 7, 18)
-    dif = days_between(today, ref) - 1
+    ref = datetime.datetime(2020, 1, 1)
+    ref_2 = datetime.datetime(2020, 2, 1)
+    dif = days_between(ref_2, ref) - 1
     delta_to_add = 86400 * dif
     period1 = july_eighteen_period1 + delta_to_add
     period2 = july_eighteen_period2 + delta_to_add
@@ -381,28 +428,6 @@ def get_delta_issues_maturities(start_day, start_month, start_year, end_day, end
     return imd
 
 
-# d - dates objects
-def update_dates_fed(d):
-    today = datetime.date.today()
-    with open('.idea/fedData.json', 'r') as f:
-        fed_data = json.load(f)
-        fed_data = json.loads(fed_data)
-    for my_date in d:
-        search_result = [x for x in fed_data if x['date'] == my_date['date']]
-        # new date
-        if len(search_result) == 0:
-            new_data = get_fed_data(my_date['date'])
-            my_date['fed'] = new_data['maturities']
-            date = get_date_from_my_date(my_date['date'])
-            if date <= today:
-                fed_data.append(new_data)
-        else:
-            my_date['fed'] = search_result[0]['maturities']
-    y = json.dumps(fed_data)
-    with open('.idea/fedData.json', 'w') as f:
-        json.dump(y, f)
-
-
 # region axisAndJson
 ...
 
@@ -435,6 +460,10 @@ def get_super_data(d):
     return int(d['super_data'])/ 1000000
 
 
+def get_minus_super_data(d):
+    return -1 *int(get_super_data(d))
+
+
 def get_dates_with_maturities_gtz(d):
     search_result = [x for x in d if x['total_maturities'] > 0]
     return search_result
@@ -442,6 +471,11 @@ def get_dates_with_maturities_gtz(d):
 
 def get_dates_with_issues_gtz(d):
     search_result = [x for x in d if x['total_issues'] > 0]
+    return search_result
+
+
+def get_dates_with_maturities_gtz(d):
+    search_result = [x for x in d if x['total_maturities'] > 0]
     return search_result
 
 
@@ -490,12 +524,16 @@ def update_super_data(d):
                     tomorrow = add_days_and_get_date(cur_date['date'], 1)
                     tomorrow = get_my_date_from_date(tomorrow)
                     search_result = [x for x in d if x['date'] == tomorrow]
-                    cur_date = search_result[0]
-                    issues = int(cur_date['total_issues'])
-                    maturities = int(cur_date['total_maturities'])
-                    if "issues_after_past_fed" in da:
-                        issues = da['issues_after_past_fed']
-
+                    if len(search_result) > 0:
+                        cur_date = search_result[0]
+                        issues = int(cur_date['total_issues'])
+                        maturities = int(cur_date['total_maturities'])
+                        if "issues_after_past_fed" in da:
+                            issues = da['issues_after_past_fed']
+                    else:
+                        print('Error in super_data tomorrow')
+                        print(cur_date)
+                        break
 
 
 def get_imd_treasury_delta(d):
@@ -505,6 +543,23 @@ def get_imd_treasury_delta(d):
     if imd == 0 or treasury == 0:
         return number
     elif imd*treasury < 0:
+        return -number
+    return number
+
+
+def get_minus_super_data_snp_cor(d):
+    is_legal_day =  bool(d['is_legal_date'])
+    if not is_legal_day:
+        return 0
+    minus_super_data = get_minus_super_data(d)
+    snp_d = 0
+    search_results = [x for x in snp_data if x['date'] == d['date']]
+    if len(search_results) > 0:
+        snp_d = get_snp_delta(search_results[0])
+    number = 100000
+    if minus_super_data == 0 or snp_d == 0:
+        return 0
+    elif minus_super_data*snp_d < 0:
         return -number
     return number
 
@@ -601,97 +656,105 @@ def update_dates_imd(ds):
             date['total_maturities'] = 0
 
 
-        # The process (main)
-date_range = ['01', '03', '2020', '25', '07', '2020']
-# input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
-dates = generate_dates(date_range)
-minDate = add_days_and_get_date(dates[0]['date'], -2)
-maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
-update_dates_treasury_delta(dates)
-update_dates_imd(dates)
-update_dates_fed(dates)
-update_dates_fed_acceptance(dates)
-
-update_super_data(dates)
-print(dates)
+def sort_dates(d):
+    d = d.sort(key=lambda x: get_date_from_my_date(x['date']))
 
 
-# calculate dates
-illegal_dates = [x for x in dates if x['is_legal_date'] is False]
-legal_dates = [x for x in dates if x['is_legal_date'] is True]
-fed_dates = get_dates_with_fed_gtz(dates)
-issues_dates = get_dates_with_issues_gtz(dates)
-fed_acceptance_dates = get_dates_with_fed_acceptance_gtz(dates)
+snp_data = []
 
+def main(date_range):
+    # The process (main)
+    snp_data = get_snp_list()
+    # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
+    dates = generate_dates(date_range)
+    minDate = add_days_and_get_date(dates[0]['date'], -2)
+    maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
+    update_dates_treasury_delta(dates)
+    update_dates_imd(dates)
+    update_dates_fed(dates)
+    update_dates_fed_acceptance(dates)
 
-# plt - x axis
-fig, ax = plt.subplots()
-ax.axhline(y=0, color='black', linestyle='-')
-plt.xlabel('date')
-ax.set_xlim([minDate, maxDate])
+    update_super_data(dates)
+    for d in dates:
+        print(d)
 
+    # calculate dates
+    illegal_dates = [x for x in dates if x['is_legal_date'] is False]
+    legal_dates = [x for x in dates if x['is_legal_date'] is True]
+    fed_dates = get_dates_with_fed_gtz(dates)
+    issues_dates = get_dates_with_issues_gtz(dates)
+    maturities_dates = get_dates_with_maturities_gtz(dates)
+    fed_acceptance_dates = get_dates_with_fed_acceptance_gtz(dates)
 
-# plt - illegal_dates
-plt.scatter(list(map(get_axis_date, illegal_dates)), list(map((lambda x: 0), illegal_dates)),
-            marker='o', color='grey')
+    # plt - x axis
+    fig, ax = plt.subplots()
+    ax.axhline(y=0, color='black', linestyle='-')
+    plt.xlabel('date')
+    ax.set_xlim([minDate, maxDate])
 
+    # plt - illegal_dates
+    plt.scatter(list(map(get_axis_date, illegal_dates)), list(map((lambda x: 0), illegal_dates)),
+                marker='o', color='grey')
 
-# plt - treasury_delta
-plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
-         color='blue', linestyle='-', label='treasury_delta')
-for n in legal_dates:
-    plt.annotate(str(int(n['treasury_delta'])), (get_axis_date(n), n['treasury_delta']),color='blue')
+    # plt - treasury_delta
+    plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
+             color='blue', linestyle='-', label='treasury_delta')
+    for n in legal_dates:
+        plt.annotate(str(int(n['treasury_delta'])), (get_axis_date(n), n['treasury_delta']),color='blue')
 
+    # plt - issues + maturities + imd
+    ax.scatter(list(map(get_axis_date, issues_dates)), list(map(get_total_issues, issues_dates)),
+               marker='^', color='green', label='issues')
+    ax.scatter(list(map(get_axis_date, maturities_dates)), list(map(get_total_maturities, maturities_dates)),
+               marker='v', color='red', label='maturities')
+    ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_imd, legal_dates)),
+            color='green', linestyle='--', label='imd')
 
-# plt - issues + maturities + imd
-ax.scatter(list(map(get_axis_date, issues_dates)), list(map(get_total_issues, issues_dates)), marker='^',
-           color='green', label='issues')
-ax.scatter(list(map(get_axis_date, issues_dates)), list(map(get_total_maturities, issues_dates)), marker='v',
-           color='red', label='maturities')
-ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_imd, legal_dates)),
-        color='green', linestyle='--', label='imd')
+    for n in legal_dates:
+        ax.annotate(str(int(get_imd(n))), (get_axis_date(n), int(get_imd(n))), color='green')
 
-for n in legal_dates:
-    ax.annotate(str(int(get_imd(n))), (get_axis_date(n), int(get_imd(n))), color='green')
+    # when there is no correlation
+    plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury_delta, legal_dates)),
+                     color='red', alpha=0.15)
 
-# when there is no correlation
-plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury_delta, legal_dates)),
-                 color='red', alpha=0.15)
+    # plt - fed
+    ax.scatter(list(map(get_axis_date, fed_dates)), list(map(get_fed, fed_dates)),
+            color='#ebb134', marker='^', label='fed_maturities')
+    for n in fed_dates:
+        ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#ebb134')
 
+    #plt - fed_acceptance
+    ax.scatter(list(map(get_axis_date, fed_acceptance_dates)), list(map(get_fed_acceptance, fed_acceptance_dates)),
+               color='#a10e9a', marker='H', label='fed_acceptance')
+    for n in fed_acceptance_dates:
+        ax.annotate(str(int(get_fed_acceptance(n))), (get_axis_date(n), int(get_fed_acceptance(n))), color='#a10e9a')
 
-# plt - fed
-ax.scatter(list(map(get_axis_date, fed_dates)), list(map(get_fed, fed_dates)),
-        color='#ebb134', marker='^', label='fed_maturities')
-for n in fed_dates:
-    ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#ebb134')
+    # plt - SUPER DATA
+    ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data, legal_dates)),
+               color='#9542f5', label='super_data')
 
-
-#plt - fed_acceptance
-ax.scatter(list(map(get_axis_date, fed_acceptance_dates)), list(map(get_fed_acceptance, fed_acceptance_dates)),
-           color='#a10e9a', marker='H', label='fed_acceptance')
-for n in fed_acceptance_dates:
-    ax.annotate(str(int(get_fed_acceptance(n))), (get_axis_date(n), int(get_fed_acceptance(n))), color='#a10e9a')
-
-
-# plt - SUPER DATA
-ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data, legal_dates)),
-           color='#9542f5', label='super_data')
-
-
-plt.grid(True)
-plt.legend()
-plt.show()
-
-
-print('thank you')
-
-
-"""
-
-# snp data
-# ax.plot(list(map(get_date, snp_data)), list(map(get_snp_delta, snp_data)))
-ax.scatter(list(map(get_date, snp_data)), list(map(get_snp_delta, snp_data)), marker='o', color='orange')
-for n in snp_data:
-    ax.annotate(str(n['delta']), (n['date'], n['delta']*1000))
+    """
+    # plt - !!!! MINUS !!! SUPER DATA
+    ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_minus_super_data, legal_dates)),
+            color='#9542f5', label='super_data')
     
-"""
+    # snp data
+    ax.plot(list(map(get_axis_date, snp_data)), list(map(get_snp_delta, snp_data)), color='orange', label='S&P')
+    # ax.scatter(list(map(get_axis_date, snp_data)), list(map(get_snp_delta, snp_data)), marker='o', color='orange')
+    for n in snp_data:
+        ax.annotate(str(n['delta']), (get_axis_date(n), n['delta']*1000))
+    
+    
+    # plt - problems
+    plt.fill_between(list(map(get_axis_date, dates)), list(map(get_minus_super_data_snp_cor, dates)),
+                     color='#4f964a', alpha=0.25)
+    """
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+    print('thank you')
+
+
+
+date_range = ['10', '06', '2020', '10', '08', '2020']
+main(date_range)
