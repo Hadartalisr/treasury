@@ -1,6 +1,7 @@
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from sklearn.neighbors import KDTree
 import datetime
 import requests
@@ -719,9 +720,9 @@ def main(date_range):
 
     # plt - fed
     ax.scatter(list(map(get_axis_date, fed_dates)), list(map(get_fed, fed_dates)),
-            color='#ebb134', marker='^', label='fed_maturities')
+            color='#34ebab', marker='^', label='fed_maturities')
     for n in fed_dates:
-        ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#ebb134')
+        ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#34ebab')
 
     #plt - fed_acceptance
     ax.scatter(list(map(get_axis_date, fed_acceptance_dates)), list(map(get_fed_acceptance, fed_acceptance_dates)),
@@ -756,5 +757,75 @@ def main(date_range):
 
 
 
-date_range = ['10', '06', '2020', '10', '08', '2020']
-main(date_range)
+# date_range = ['10', '06', '2020', '10', '08', '2020']
+# main(date_range)
+
+def search_in_ambs_schedule_html():
+    url = "https://www.newyorkfed.org/markets/ambs/ambs_schedule.html"
+    ambs_schedule = list()
+    try:
+        resp = requests.get(url)
+        content = resp.text
+        index = content.index('Tentative Agency MBS Purchases')
+        content = content[index:]
+        index = content.index('</tr>')
+        content = content[index:]
+        index = content.index('</tbody>')
+        content = content[:index]
+
+
+        #get one month
+        #dates
+        dates_html_start = '<p style="text-align: left;">'
+        dates_html_end = '</p></td>'
+        start = content.index(dates_html_start) + len(dates_html_start)
+        end = content.index(dates_html_end)
+        dates = content[start:end]
+        content = content[end+len(dates_html_end):]
+
+        #text
+        text_html_start = '<p>'
+        text_html_end = '</p>'
+        start = content.index(text_html_start) + len(text_html_start)
+        end = content.index(text_html_end)
+        text = content[start:end]
+        content = content[end+len(text_html_end):]
+
+        #link
+        link_html_start = '<a href="'
+        link_html_end = '.xls'
+        start = content.index(link_html_start) + len(link_html_start)
+        end = content.index(link_html_end) + len(link_html_end)
+        link = 'https://www.newyorkfed.org/' + content[start:end]
+        content = content[end+len(link_html_end):]
+
+        ambs_schedule.append({'dates': dates, 'text': text, 'link' : link})
+        #print(content)
+        print('ambs_schedule')
+        print(ambs_schedule)
+    except Exception as ex:
+        print(ex)
+
+
+
+def get_ambs_trade(link):
+    dates = list()
+    excel_url = 'https://www.newyorkfed.org//medialibrary/media/markets/ambs/20200612-20200713.xls'
+    try:
+        resp = requests.get(excel_url)
+        resp = resp.content
+        data = pd.read_excel(resp)
+        df = pd.DataFrame(data)
+        df.columns = [c.replace(' ', '_') for c in df.columns]
+        df.columns = [c.replace('*', '') for c in df.columns]
+        df = df.set_index('Contractual_Settlement_Date')
+        new_df = df.groupby(df.index).sum().reset_index()
+        new_df['Contractual_Settlement_Date'] = new_df.apply(lambda row : get_my_date_from_date(row['Contractual_Settlement_Date']), axis=1)
+        new_df.drop(['Coupon', 'Price'], axis=1, inplace=True)
+        new_df = new_df.to_dict(orient='records')
+    except Exception as ex:
+        print(ex)
+    print(new_df)
+
+
+get_ambs_trade('')
