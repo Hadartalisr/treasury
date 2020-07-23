@@ -490,8 +490,17 @@ def get_dates_with_fed_acceptance_gtz(d):
     return search_result
 
 
+def get_dates_with_mbs_acceptance_gtz(d):
+    search_result = [x for x in d if x['mbs'] > 0]
+    return search_result
+
+
 def get_fed_acceptance(d):
     return d['fed_acceptance'] / 1000000
+
+
+def get_mbs(d):
+    return d['mbs'] / 1000000
 
 
 def update_super_data(d):
@@ -657,6 +666,19 @@ def update_dates_imd(ds):
             date['total_maturities'] = 0
 
 
+def update_dates_ambs(d):
+    with open('.idea/ambsData.json', 'r') as f:
+        data = json.load(f)
+        data = json.loads(data)
+    for date in d:
+        search_result = [x for x in data if date['date'] == x['date']]
+        if len(search_result) > 0:
+            date['mbs'] = search_result[0]['trade_amount']
+        else :
+            date['mbs'] = 0
+
+
+
 def sort_dates(d):
     d = d.sort(key=lambda x: get_date_from_my_date(x['date']))
 
@@ -674,6 +696,7 @@ def main(date_range):
     update_dates_imd(dates)
     update_dates_fed(dates)
     update_dates_fed_acceptance(dates)
+    update_dates_ambs(dates)
 
     update_super_data(dates)
     for d in dates:
@@ -686,6 +709,7 @@ def main(date_range):
     issues_dates = get_dates_with_issues_gtz(dates)
     maturities_dates = get_dates_with_maturities_gtz(dates)
     fed_acceptance_dates = get_dates_with_fed_acceptance_gtz(dates)
+    mbs_dates = get_dates_with_mbs_acceptance_gtz(dates)
 
     # plt - x axis
     fig, ax = plt.subplots()
@@ -730,6 +754,14 @@ def main(date_range):
     for n in fed_acceptance_dates:
         ax.annotate(str(int(get_fed_acceptance(n))), (get_axis_date(n), int(get_fed_acceptance(n))), color='#a10e9a')
 
+
+    #plt - mbs
+    ax.scatter(list(map(get_axis_date, mbs_dates)), list(map(get_mbs, mbs_dates)),
+               color='#824a00', marker='H', label='mbs')
+    for n in mbs_dates:
+        ax.annotate(str(int(get_mbs(n))), (get_axis_date(n), int(get_mbs(n))), color='#824a00')
+
+
     # plt - SUPER DATA
     ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data, legal_dates)),
                color='#9542f5', label='super_data')
@@ -757,75 +789,10 @@ def main(date_range):
 
 
 
-# date_range = ['10', '06', '2020', '10', '08', '2020']
-# main(date_range)
 
-def search_in_ambs_schedule_html():
-    url = "https://www.newyorkfed.org/markets/ambs/ambs_schedule.html"
-    ambs_schedule = list()
-    try:
-        resp = requests.get(url)
-        content = resp.text
-        index = content.index('Tentative Agency MBS Purchases')
-        content = content[index:]
-        index = content.index('</tr>')
-        content = content[index:]
-        index = content.index('</tbody>')
-        content = content[:index]
-
-
-        #get one month
-        #dates
-        dates_html_start = '<p style="text-align: left;">'
-        dates_html_end = '</p></td>'
-        start = content.index(dates_html_start) + len(dates_html_start)
-        end = content.index(dates_html_end)
-        dates = content[start:end]
-        content = content[end+len(dates_html_end):]
-
-        #text
-        text_html_start = '<p>'
-        text_html_end = '</p>'
-        start = content.index(text_html_start) + len(text_html_start)
-        end = content.index(text_html_end)
-        text = content[start:end]
-        content = content[end+len(text_html_end):]
-
-        #link
-        link_html_start = '<a href="'
-        link_html_end = '.xls'
-        start = content.index(link_html_start) + len(link_html_start)
-        end = content.index(link_html_end) + len(link_html_end)
-        link = 'https://www.newyorkfed.org/' + content[start:end]
-        content = content[end+len(link_html_end):]
-
-        ambs_schedule.append({'dates': dates, 'text': text, 'link' : link})
-        #print(content)
-        print('ambs_schedule')
-        print(ambs_schedule)
-    except Exception as ex:
-        print(ex)
+date_range = ['10', '05', '2020', '30', '07', '2020']
+main(date_range)
 
 
 
-def get_ambs_trade(link):
-    dates = list()
-    excel_url = 'https://www.newyorkfed.org//medialibrary/media/markets/ambs/20200612-20200713.xls'
-    try:
-        resp = requests.get(excel_url)
-        resp = resp.content
-        data = pd.read_excel(resp)
-        df = pd.DataFrame(data)
-        df.columns = [c.replace(' ', '_') for c in df.columns]
-        df.columns = [c.replace('*', '') for c in df.columns]
-        df = df.set_index('Contractual_Settlement_Date')
-        new_df = df.groupby(df.index).sum().reset_index()
-        new_df['Contractual_Settlement_Date'] = new_df.apply(lambda row : get_my_date_from_date(row['Contractual_Settlement_Date']), axis=1)
-        new_df.drop(['Coupon', 'Price'], axis=1, inplace=True)
-        new_df = new_df.to_dict(orient='records')
-    except Exception as ex:
-        print(ex)
-    print(new_df)
-
-
-get_ambs_trade('')
+# get_ambs_trade('')

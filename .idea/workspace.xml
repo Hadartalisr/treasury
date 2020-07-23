@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="05856821-27c3-4792-a801-e411e0a0cf16" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/ambsData.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/economagic.py" beforeDir="false" afterPath="$PROJECT_DIR$/ambs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helloWorld.py" beforeDir="false" afterPath="$PROJECT_DIR$/helloWorld.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -40,7 +42,7 @@
     </key>
   </component>
   <component name="RunManager" selected="Python.helloWorld">
-    <configuration name="economagic" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="ambs" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="IdeaProjects" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -52,7 +54,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/economagic.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\hadar\IdeaProjects\ambs.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -85,7 +87,7 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.helloWorld" />
-        <item itemvalue="Python.economagic" />
+        <item itemvalue="Python.ambs" />
       </list>
     </recent_temporary>
   </component>
@@ -111,46 +113,46 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="614" y="119" key="CommitChangelistDialog2/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595054701268" />
-    <state width="1877" height="342" key="GridCell.Tab.0.bottom" timestamp="1595500019951">
+    <state width="1877" height="301" key="GridCell.Tab.0.bottom" timestamp="1595506422036">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="342" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595500019951" />
-    <state width="1877" height="342" key="GridCell.Tab.0.center" timestamp="1595500019951">
+    <state width="1877" height="301" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595506422036" />
+    <state width="1877" height="301" key="GridCell.Tab.0.center" timestamp="1595506422036">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="342" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595500019951" />
-    <state width="1877" height="342" key="GridCell.Tab.0.left" timestamp="1595500019951">
+    <state width="1877" height="301" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595506422036" />
+    <state width="1877" height="301" key="GridCell.Tab.0.left" timestamp="1595506422036">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="342" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595500019951" />
-    <state width="1877" height="342" key="GridCell.Tab.0.right" timestamp="1595500019951">
+    <state width="1877" height="301" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595506422036" />
+    <state width="1877" height="301" key="GridCell.Tab.0.right" timestamp="1595506422036">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="342" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595500019951" />
-    <state width="1877" height="330" key="GridCell.Tab.1.bottom" timestamp="1595498688611">
+    <state width="1877" height="301" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595506422036" />
+    <state width="1877" height="330" key="GridCell.Tab.1.bottom" timestamp="1595504731369">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="330" key="GridCell.Tab.1.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595498688611" />
-    <state width="1877" height="330" key="GridCell.Tab.1.center" timestamp="1595498688611">
+    <state width="1877" height="330" key="GridCell.Tab.1.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595504731368" />
+    <state width="1877" height="330" key="GridCell.Tab.1.center" timestamp="1595504731368">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="330" key="GridCell.Tab.1.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595498688611" />
-    <state width="1877" height="330" key="GridCell.Tab.1.left" timestamp="1595498688611">
+    <state width="1877" height="330" key="GridCell.Tab.1.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595504731368" />
+    <state width="1877" height="330" key="GridCell.Tab.1.left" timestamp="1595504731368">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="330" key="GridCell.Tab.1.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595498688611" />
-    <state width="1877" height="330" key="GridCell.Tab.1.right" timestamp="1595498688611">
+    <state width="1877" height="330" key="GridCell.Tab.1.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595504731368" />
+    <state width="1877" height="330" key="GridCell.Tab.1.right" timestamp="1595504731368">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="330" key="GridCell.Tab.1.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595498688611" />
-    <state width="965" height="533" key="XDebugger.FullValuePopup" timestamp="1595493510560">
+    <state width="1877" height="330" key="GridCell.Tab.1.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595504731368" />
+    <state width="965" height="533" key="XDebugger.FullValuePopup" timestamp="1595503376225">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="965" height="533" key="XDebugger.FullValuePopup/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595493510560" />
+    <state width="965" height="533" key="XDebugger.FullValuePopup/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595503376225" />
     <state x="656" y="349" key="com.intellij.ide.util.TipDialog" timestamp="1595276163770">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
@@ -169,18 +171,8 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/helloWorld.py</url>
-          <line>552</line>
+          <line>561</line>
           <option name="timeStamp" value="41" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/helloWorld.py</url>
-          <line>802</line>
-          <option name="timeStamp" value="43" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/helloWorld.py</url>
-          <line>827</line>
-          <option name="timeStamp" value="52" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
