@@ -8,7 +8,6 @@ to leave out days on which there is no data, i.e. weekends.  The example
 below shows how to use an 'index formatter' to achieve the desired plot
 """
 import datetime
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cbook as cbook
@@ -181,63 +180,54 @@ def show_my_plot(dates, type):
     mbs_dates = get_dates_with_mbs_acceptance_gtz(dates)
     swap_dates = get_dates_with_swap_neqz(dates)"""
 
-
     fig, ax = plt.subplots()
     ind = np.arange(length)  # the evenly spaced plot indices
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
 
-
     if type == 0:
-
         # x - axe line
         # ax.axhline(y=0, color='black', linestyle='-')
 
         # plt - treasury_delta
+        label = bidialg.get_display('הפרש האוצר בפועל')
         plt.plot(ind, list(map(get_treasury_delta_from_obj, dates)), color='#fe5722',
-                 linestyle='-', label='treasury_delta')
-        i = 0
-        while i < length:
+                 linestyle='-', label=label)
+        for i in range(0, length):
             treasury_delta = get_treasury_delta_from_obj(dates[i])
-            str_i = str(i)
-            i += 1
-            try :
-                plt.annotate(treasury_delta, (i, treasury_delta), color='#fe5722')
-            except Exception as ex:
-                print(str_i)
-                print(ex)
+            plt.annotate(treasury_delta, (i, treasury_delta), color='#fe5722')
+
+        # plt - issues + maturities + imd
+        ax.scatter(ind, list(map(get_total_issues, dates)), marker='^', color='#b8f5ba', label='הנפקות של האוצר')
+        ax.scatter(ind, list(map(get_total_maturities, dates)), marker='v', color='#f5b8b8', label='פרעונות של האוצר')
+        ax.plot(ind, list(map(get_imd, dates)), color='#fe9800', linestyle='--', label='הפרש בין הנפקות האוצר לפרעונות האוצר')
+        for i in range(0, length):
+            imd = int(get_imd(dates[i]))
+            ax.annotate(str(imd), (i, imd), color='#fe9800')
 
         """
-        # plt - issues + maturities + imd
-        ax.scatter(ind, list(map(get_total_issues, dates)), marker='^', color='green', label='issues')
-        ax.scatter(ind, list(map(get_total_maturities, dates)), marker='v', color='red', label='maturities')
-        ax.plot(ind, list(map(get_imd, dates)), color='green', linestyle='--', label='imd')
-        for i in range(0, length):
-            imd = str(int(get_imd(dates[i])))
-            ax.annotate(i, (i, imd), color='green')
-
-        
         # when there is no correlation
         plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury_delta, legal_dates)),
                          color='red', alpha=0.15)
-        
+        """
         # plt - fed
-        ax.scatter(list(map(get_axis_date, fed_dates)), list(map(get_fed, fed_dates)),
-                   color='#34ebab', marker='^', label='fed_maturities')
-        for n in fed_dates:
-            ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#34ebab')
+        ax.scatter(ind, list(map(get_fed, dates)),color='#cddc39', marker='^', label='גלגול חוב של הפד')
+        for i in range(0, length):
+            fed_ma = int(get_fed(dates[i]))
+            ax.annotate(str(fed_ma), (i, fed_ma), color='#cddc39')
 
         #plt - fed_acceptance
-        ax.scatter(list(map(get_axis_date, fed_acceptance_dates)), list(map(get_fed_acceptance, fed_acceptance_dates)),
-                   color='#a10e9a', marker='H', label='fed_acceptance')
-        for n in fed_acceptance_dates:
-            ax.annotate(str(int(get_fed_acceptance(n))), (get_axis_date(n), int(get_fed_acceptance(n))), color='#a10e9a')
+        ax.scatter(ind, list(map(get_fed_acceptance, dates)), color='#029688', marker='H', label='השקעות של הפד')
+        for i in range(0, length):
+            fed_acc = int(get_fed_acceptance(dates[i]))
+            ax.annotate(str(fed_acc), (i, fed_acc), color='#029688')
 
         #plt - mbs
-        ax.scatter(list(map(get_axis_date, mbs_dates)), list(map(get_mbs, mbs_dates)),
-                   color='#824a00', marker='H', label='mbs')
-        for n in mbs_dates:
-            ax.annotate(str(int(get_mbs(n))), (get_axis_date(n), int(get_mbs(n))), color='#824a00')
+        ax.scatter(ind, list(map(get_mbs, dates)), color='#e91d64', marker='H', label='אג"ח מגובה משכנתאות')
+        for i in range(0, length):
+            mbs = int(get_mbs(dates[i]))
+            ax.annotate(str(mbs), (i, mbs), color='#e91d64')
 
+        """"
         # plt - swap
         ax.scatter(list(map(get_axis_date, swap_dates)), list(map(get_swap, swap_dates)),
                    color='#2a5859', marker='*', label='swap')
@@ -257,11 +247,10 @@ def show_my_plot(dates, type):
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
                 color='#2a5859', label='super_data_mbs_swap')
 
-        plt.grid(True)
-        plt.legend()
+        
         plt.show()
         print('thank you')
         """
-
-
+    plt.grid(True)
+    plt.legend()
     plt.show()

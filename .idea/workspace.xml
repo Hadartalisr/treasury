@@ -4,7 +4,6 @@
     <list default="true" id="05856821-27c3-4792-a801-e411e0a0cf16" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/UI.py" beforeDir="false" afterPath="$PROJECT_DIR$/UI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/moneyHeist.py" beforeDir="false" afterPath="$PROJECT_DIR$/moneyHeist.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -179,26 +178,26 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="614" y="119" key="CommitChangelistDialog2/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595054701268" />
-    <state width="1877" height="318" key="GridCell.Tab.0.bottom" timestamp="1595586818679">
+    <state width="1877" height="318" key="GridCell.Tab.0.bottom" timestamp="1595591254174">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="318" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595586818679" />
-    <state width="1877" height="318" key="GridCell.Tab.0.center" timestamp="1595586818679">
+    <state width="1877" height="318" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595591254174" />
+    <state width="1877" height="318" key="GridCell.Tab.0.center" timestamp="1595591254174">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="318" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595586818679" />
-    <state width="1877" height="318" key="GridCell.Tab.0.left" timestamp="1595586818679">
+    <state width="1877" height="318" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595591254174" />
+    <state width="1877" height="318" key="GridCell.Tab.0.left" timestamp="1595591254174">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="318" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595586818679" />
-    <state width="1877" height="318" key="GridCell.Tab.0.right" timestamp="1595586818679">
+    <state width="1877" height="318" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595591254174" />
+    <state width="1877" height="318" key="GridCell.Tab.0.right" timestamp="1595591254174">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="318" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595586818679" />
+    <state width="1877" height="318" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595591254174" />
     <state width="1877" height="296" key="GridCell.Tab.1.bottom" timestamp="1595586246173">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
@@ -254,11 +253,6 @@
           <url>file://$PROJECT_DIR$/UI.py</url>
           <line>62</line>
           <option name="timeStamp" value="103" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/UI.py</url>
-          <line>204</line>
-          <option name="timeStamp" value="104" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
