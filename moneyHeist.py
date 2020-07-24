@@ -11,6 +11,8 @@ from pandas.tseries.holiday import USFederalHolidayCalendar
 import sys
 import re
 from holidays import is_legal_day
+from UI import show_my_plot
+
 
 
 def get_date_format(days_to_sub):
@@ -737,12 +739,12 @@ def update_swap_delta(d):
             date['swap'] = 0
 
 
-
 def sort_dates(d):
     d = d.sort(key=lambda x: get_date_from_my_date(x['date']))
 
 
 snp_data = []
+
 
 def main(date_range, type):
     # The process (main)
@@ -763,9 +765,6 @@ def main(date_range, type):
     update_super_data_mbs_swap(dates)
 
 
-    for d in dates:
-        print(d)
-
     # calculate dates
     illegal_dates = [x for x in dates if x['is_legal_date'] is False]
     legal_dates = [x for x in dates if x['is_legal_date'] is True]
@@ -776,11 +775,15 @@ def main(date_range, type):
     mbs_dates = get_dates_with_mbs_acceptance_gtz(dates)
     swap_dates = get_dates_with_swap_neqz(dates)
 
+
+
     # plt - x axis
     fig, ax = plt.subplots()
     ax.axhline(y=0, color='black', linestyle='-')
     plt.xlabel('date')
     ax.set_xlim([minDate, maxDate])
+
+
 
     # plt - illegal_dates
     plt.scatter(list(map(get_axis_date, illegal_dates)), list(map((lambda x: 0), illegal_dates)),
@@ -846,8 +849,12 @@ def main(date_range, type):
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
                 color='#2a5859', label='super_data_mbs_swap')
 
-
+        plt.grid(True)
+        plt.legend()
+        plt.show()
+        print('thank you')
     elif type == 1:
+        show_my_plot(legal_dates)
         """
         # plt - !!!! MINUS !!! SUPER DATA MBS
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_minus_super_data_mbs, legal_dates)),
@@ -863,19 +870,21 @@ def main(date_range, type):
         # plt - problems
         plt.fill_between(list(map(get_axis_date, dates)), list(map(get_minus_super_data_mbs_snp_cor, dates)),
                          color='#4f964a', alpha=0.25)
-        """
-
+                         
         # plt - SUPER DATA MBS SWAP
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
                 color='#2a5859', label='super_data_mbs_swap')
-
-    plt.grid(True)
-    plt.legend()
-    plt.show()
-    print('thank you')
+        """
 
 
 
-date_range = ['01', '03', '2020', '31', '07', '2020']
+
+
+
+
+
+
+date_range = ['01', '03', '2020', '05', '04', '2020']
 main(date_range, 1)
+
 
