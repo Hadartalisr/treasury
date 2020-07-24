@@ -445,93 +445,6 @@ def get_delta_issues_maturities(start_day, start_month, start_year, end_day, end
 ...
 
 
-def get_axis_date(d):
-    return get_date_from_my_date(d['date'])
-
-
-def get_treasury_delta_from_obj(d):
-    return float(d['treasury_delta'])
-
-
-def get_total_issues(d):
-    return int(d['total_issues']) / 1000000
-
-
-def get_total_maturities(d):
-    return int(d['total_maturities']) / 1000000
-
-
-def get_imd(d):
-    return int(d['imd']) / 1000000
-
-
-def get_fed(d):
-    return int(d['fed']) / 1000000
-
-
-def get_super_data(d):
-    return int(d['super_data'])/ 1000000
-
-
-def get_super_data_mbs(d):
-    return int(d['super_data_mbs'])/ 1000000
-
-
-def get_super_data_mbs_swap(d):
-    return int(d['super_data_mbs_swap'])/1000000
-
-
-def get_minus_super_data_mbs(d):
-    return -1 *int(get_super_data_mbs(d))
-
-
-def get_dates_with_maturities_gtz(d):
-    search_result = [x for x in d if x['total_maturities'] > 0]
-    return search_result
-
-
-def get_dates_with_issues_gtz(d):
-    search_result = [x for x in d if x['total_issues'] > 0]
-    return search_result
-
-
-def get_dates_with_maturities_gtz(d):
-    search_result = [x for x in d if x['total_maturities'] > 0]
-    return search_result
-
-
-def get_dates_with_fed_gtz(d):
-    search_result = [x for x in d if x['fed'] > 0]
-    return search_result
-
-
-def get_dates_with_fed_acceptance_gtz(d):
-    search_result = [x for x in d if x['fed_acceptance'] > 0]
-    return search_result
-
-
-def get_dates_with_mbs_acceptance_gtz(d):
-    search_result = [x for x in d if x['mbs'] > 0]
-    return search_result
-
-
-def get_dates_with_swap_neqz(d):
-    search_result = [x for x in d if x['swap'] != 0]
-    return search_result
-
-
-def get_fed_acceptance(d):
-    return d['fed_acceptance'] / 1000000
-
-
-def get_mbs(d):
-    return d['mbs'] / 1000000
-
-
-def get_swap(d):
-    return d['swap']/ 1000000
-
-
 def update_super_data(d):
     for da in d:
         issues = int(da['total_issues'])
@@ -768,19 +681,15 @@ def main(date_range, type):
     # calculate dates
     illegal_dates = [x for x in dates if x['is_legal_date'] is False]
     legal_dates = [x for x in dates if x['is_legal_date'] is True]
-    fed_dates = get_dates_with_fed_gtz(dates)
-    issues_dates = get_dates_with_issues_gtz(dates)
-    maturities_dates = get_dates_with_maturities_gtz(dates)
-    fed_acceptance_dates = get_dates_with_fed_acceptance_gtz(dates)
-    mbs_dates = get_dates_with_mbs_acceptance_gtz(dates)
-    swap_dates = get_dates_with_swap_neqz(dates)
 
 
+    show_my_plot(legal_dates,0)
 
+
+    """
     # plt - x axis
     fig, ax = plt.subplots()
-    ax.axhline(y=0, color='black', linestyle='-')
-    plt.xlabel('date')
+
     ax.set_xlim([minDate, maxDate])
 
 
@@ -855,7 +764,7 @@ def main(date_range, type):
         print('thank you')
     elif type == 1:
         show_my_plot(legal_dates)
-        """
+        "" "
         # plt - !!!! MINUS !!! SUPER DATA MBS
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_minus_super_data_mbs, legal_dates)),
                 color='#9542f5', label='super_data_mbs')
@@ -874,6 +783,7 @@ def main(date_range, type):
         # plt - SUPER DATA MBS SWAP
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
                 color='#2a5859', label='super_data_mbs_swap')
+        " ""
         """
 
 
@@ -883,8 +793,7 @@ def main(date_range, type):
 
 
 
-
-date_range = ['01', '03', '2020', '05', '04', '2020']
+date_range = ['01', '03', '2020', '05', '06', '2020']
 main(date_range, 1)
 
 
