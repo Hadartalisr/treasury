@@ -10,6 +10,8 @@ import csv
 from pandas.tseries.holiday import USFederalHolidayCalendar
 import sys
 import re
+from holidays import is_legal_day
+
 
 def get_date_format(days_to_sub):
     x = datetime.datetime.today() - datetime.timedelta(days=days_to_sub)
@@ -236,12 +238,16 @@ def get_snp_list():
 
 # date in my_date format
 def get_fed_acceptance_url(date):
-    day = get_day_from_my_date(date)
-    month = get_month_from_my_date(date)
-    year = get_year_from_my_date(date)
+    week_before_date = get_my_date_from_date(add_days_and_get_date(date, -7))
+    day_before = get_day_from_my_date(week_before_date)
+    month_before = get_month_from_my_date(week_before_date)
+    year_before = get_year_from_my_date(week_before_date)
+    day_after = get_day_from_my_date(date)
+    month_after = get_month_from_my_date(date)
+    year_after = get_year_from_my_date(date)
     url = 'https://markets.newyorkfed.org/api/pomo/all/results/details/search.xlsx?' + \
-        'startdate=' + month + '/' + day + '/' + year + \
-        '&enddate=' + month + '/' + day + '/' + year + '&securityType=treasury'
+        'startdate=' + month_before + '/' + day_before + '/' + year_before + \
+        '&enddate=' + month_after + '/' + day_after + '/' + year_after + '&securityType=treasury'
     return url
 
 
@@ -251,29 +257,33 @@ def get_fed_schedule_url():
 
 
 # date in my_date format
+def get_past_fed_acceptance(date):
+    excel_url = get_fed_acceptance_url(date)
+    resp = requests.get(excel_url)
+    resp = resp.content
+    data = pd.read_excel(resp)
+    df = pd.DataFrame(data)
+    df.columns = [c.replace(' ', '_') for c in df.columns]
+    df.columns = [c.replace('Par_Amt_Accepted_($)', 'Accepted') for c in df.columns]
+    df = df[['Settlement_Date', 'Accepted']]
+    df = df.groupby('Settlement_Date').sum().reset_index()
+    df['Settlement_Date'] = df['Settlement_Date'].apply(lambda row: get_my_date_from_date(row))
+    accepted = df[df['Settlement_Date'] == date]
+    if len(accepted) > 0:
+        accepted = df.iloc[0]['Accepted']
+    else:
+        accepted = 0
+    return accepted
+
+
+
+# date in my_date format
 def get_fed_acceptance_per_settlement_day(date):
     acceptance = 0
     today = datetime.date.today()
     cur_date = get_date_from_my_date(date)
-    cur_date = cur_date - datetime.timedelta(days=1)
-    if cur_date < today: # need the get the operation date of the day before
-        cur_date = get_my_date_from_date(cur_date)
-        excel_url = get_fed_acceptance_url(cur_date)
-        try:
-            resp = requests.get(excel_url)
-            print(excel_url)
-            workbook = xlrd.open_workbook(file_contents=resp.content)
-            worksheet = workbook.sheet_by_index(0)
-            rows = worksheet.nrows
-            for i in range(1, rows):
-                val = worksheet.cell(rowx=i, colx=11).value
-                try:
-                    val = int(val)
-                    acceptance = acceptance + val
-                except Exception:
-                    print('')
-        except Exception:
-            print('')
+    if cur_date <= today: # need the get the operation date of the day before
+        acceptance = get_past_fed_acceptance(date)
     elif (cur_date-today).days < 15: # might be in the schedule
         csv_url = get_fed_schedule_url()
         response = requests.get(csv_url)
@@ -298,7 +308,7 @@ def update_dates_fed_acceptance(da):
             fed_acceptance = get_fed_acceptance_per_settlement_day(d['date'])
             d['fed_acceptance'] = fed_acceptance
             if get_date_from_my_date(d['date']) <= datetime.date.today():
-                fed_acceptance_data.append({'date': d['date'], 'fed_acceptance' : fed_acceptance})
+                fed_acceptance_data.append({'date': d['date'], 'fed_acceptance': fed_acceptance})
         else:
             d['fed_acceptance'] = search_result[0]['fed_acceptance']
         is_legal_date = bool(d['is_legal_date'])
@@ -613,16 +623,6 @@ def get_snp_delta(d):
 # endregion
 
 
-def is_legal_day(date):
-    if date.weekday() == 5 or date.weekday() == 6:
-        return False
-    cal = USFederalHolidayCalendar()
-    holidays = cal.holidays(start='2018-01-01', end='2022-12-31').to_pydatetime()
-    if date in holidays:
-        return False
-    return True
-
-
 def generate_dates(dr):
     dates_to_return = list()
     start = datetime.date(int(dr[2]), int(dr[1]), int(dr[0]))
@@ -787,7 +787,7 @@ def main(date_range, type):
                 marker='o', color='grey')
 
     if type == 0:
-        """
+
         # plt - treasury_delta
         plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
                  color='blue', linestyle='-', label='treasury_delta')
@@ -841,27 +841,33 @@ def main(date_range, type):
         # plt - SUPER DATA MBS
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs, legal_dates)),
                 color='#824a00', label='super_data_mbs')
-        """
+
         # plt - SUPER DATA MBS SWAP
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
                 color='#2a5859', label='super_data_mbs_swap')
 
 
     elif type == 1:
+        """
         # plt - !!!! MINUS !!! SUPER DATA MBS
         ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_minus_super_data_mbs, legal_dates)),
                 color='#9542f5', label='super_data_mbs')
 
         # snp data
-        # ax.plot(list(map(get_axis_date, snp_data)), list(map(get_snp_delta, snp_data)), color='orange', label='S&P')
-        # ax.scatter(list(map(get_axis_date, snp_data)), list(map(get_snp_delta, snp_data)), marker='o', color='orange')
-        #for n in snp_data:
-        #    ax.annotate(str(n['delta']), (get_axis_date(n), n['delta']*1000))
+        ax.plot(list(map(get_axis_date, snp_data)), list(map(get_snp_delta, snp_data)), color='orange', label='S&P')
+        ax.scatter(list(map(get_axis_date, snp_data)), list(map(get_snp_delta, snp_data)), marker='o', color='orange')
+        for n in snp_data:
+            ax.annotate(str(n['delta']), (get_axis_date(n), n['delta']*1000))
 
 
         # plt - problems
         plt.fill_between(list(map(get_axis_date, dates)), list(map(get_minus_super_data_mbs_snp_cor, dates)),
                          color='#4f964a', alpha=0.25)
+        """
+
+        # plt - SUPER DATA MBS SWAP
+        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
+                color='#2a5859', label='super_data_mbs_swap')
 
     plt.grid(True)
     plt.legend()
@@ -870,9 +876,6 @@ def main(date_range, type):
 
 
 
-date_range = ['01', '03', '2020', '05', '08', '2020']
-main(date_range,0)
+date_range = ['01', '03', '2020', '31', '07', '2020']
+main(date_range, 1)
 
-
-
-# get_ambs_trade('')

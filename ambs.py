@@ -4,7 +4,7 @@ import json
 import pandas as pd
 import requests
 
-from helloWorld import get_my_date_from_date
+from moneyHeist import get_my_date_from_date
 
 
 def search_in_ambs_schedule_html():
