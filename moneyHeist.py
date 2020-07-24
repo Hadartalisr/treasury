@@ -12,7 +12,7 @@ import sys
 import re
 from holidays import is_legal_day
 from UI import show_my_plot
-
+import stocks
 
 
 def get_date_format(days_to_sub):
@@ -260,21 +260,25 @@ def get_fed_schedule_url():
 
 # date in my_date format
 def get_past_fed_acceptance(date):
-    excel_url = get_fed_acceptance_url(date)
-    resp = requests.get(excel_url)
-    resp = resp.content
-    data = pd.read_excel(resp)
-    df = pd.DataFrame(data)
-    df.columns = [c.replace(' ', '_') for c in df.columns]
-    df.columns = [c.replace('Par_Amt_Accepted_($)', 'Accepted') for c in df.columns]
-    df = df[['Settlement_Date', 'Accepted']]
-    df = df.groupby('Settlement_Date').sum().reset_index()
-    df['Settlement_Date'] = df['Settlement_Date'].apply(lambda row: get_my_date_from_date(row))
-    accepted = df[df['Settlement_Date'] == date]
-    if len(accepted) > 0:
-        accepted = df.iloc[0]['Accepted']
-    else:
+    try:
+        excel_url = get_fed_acceptance_url(date)
+        resp = requests.get(excel_url)
+        resp = resp.content
+        data = pd.read_excel(resp)
+        df = pd.DataFrame(data)
+        df.columns = [c.replace(' ', '_') for c in df.columns]
+        df.columns = [c.replace('Par_Amt_Accepted_($)', 'Accepted') for c in df.columns]
+        df = df[['Settlement_Date', 'Accepted']]
+        df = df.groupby('Settlement_Date').sum().reset_index()
+        df['Settlement_Date'] = df['Settlement_Date'].apply(lambda row: get_my_date_from_date(row))
+        accepted = df[df['Settlement_Date'] == date]
+        if len(accepted) > 0:
+            accepted = df.iloc[0]['Accepted']
+        else:
+            accepted = 0
+    except Exception as ex:
         accepted = 0
+        print('ERROR - bad url : '+ excel_url + ' for date: ' + date + '.')
     return accepted
 
 
@@ -503,6 +507,7 @@ def update_super_data_mbs_swap(d):
         date['super_data_mbs_swap'] = int(super_data_mbs) - int(swap)
 
 
+"""
 def get_imd_treasury_delta(d):
     imd = get_imd(d)
     number = 100000
@@ -529,7 +534,7 @@ def get_minus_super_data_mbs_snp_cor(d):
     elif minus_super_data*snp_d < 0:
         return -number
     return number
-
+"""
 
 def get_snp_delta(d):
     return d['delta'] * 1000
@@ -652,6 +657,24 @@ def update_swap_delta(d):
             date['swap'] = 0
 
 
+def update_stocks(da):
+    gspc_stock = stocks.get_GSPC_stock()
+    djia_stock = stocks.get_djia_stock()
+    for d in da:
+        gscp = gspc_stock[gspc_stock['Date'] == d['date']]
+        if len(gscp) > 0:
+            d['gspc'] = gscp.iloc[0]['Adj Close']
+        else:
+            d['gspc'] = -1000000
+
+        djia = djia_stock[djia_stock['Date'] == d['date']]
+        if len(djia) > 0:
+            d['djia'] = djia.iloc[0]['Adj Close']
+        else:
+            d['djia'] = -1000000
+
+
+
 def sort_dates(d):
     d = d.sort(key=lambda x: get_date_from_my_date(x['date']))
 
@@ -666,125 +689,30 @@ def main(date_range, type):
     dates = generate_dates(date_range)
     minDate = add_days_and_get_date(dates[0]['date'], -2)
     maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
+    print('start - update_dates_treasury_delta')
     update_dates_treasury_delta(dates)
+    print('start - update_dates_imd')
     update_dates_imd(dates)
+    print('start - update_dates_fed')
     update_dates_fed(dates)
+    print('start - update_dates_fed_acceptance')
     update_dates_fed_acceptance(dates)
+    print('start - update_dates_ambs')
     update_dates_ambs(dates)
+    print('start - update_swap_delta')
     update_swap_delta(dates)
-
+    print('start - update_super_data')
     update_super_data(dates)
+    print('start - update_super_data_mbs')
     update_super_data_mbs(dates)
+    print('start - update_super_data_mbs_swap')
     update_super_data_mbs_swap(dates)
-
-
+    print('start - update_stocks')
+    update_stocks(dates)
     # calculate dates
     illegal_dates = [x for x in dates if x['is_legal_date'] is False]
     legal_dates = [x for x in dates if x['is_legal_date'] is True]
-
-
-    show_my_plot(legal_dates,0)
-
-
-    """
-    # plt - x axis
-    fig, ax = plt.subplots()
-
-    ax.set_xlim([minDate, maxDate])
-
-
-
-    # plt - illegal_dates
-    plt.scatter(list(map(get_axis_date, illegal_dates)), list(map((lambda x: 0), illegal_dates)),
-                marker='o', color='grey')
-
-    if type == 0:
-
-        # plt - treasury_delta
-        plt.plot(list(map(get_axis_date, legal_dates)), list(map(get_treasury_delta_from_obj, legal_dates)),
-                 color='blue', linestyle='-', label='treasury_delta')
-        for n in legal_dates:
-            plt.annotate(str(int(n['treasury_delta'])), (get_axis_date(n), n['treasury_delta']),color='blue')
-        
-        # plt - issues + maturities + imd
-        ax.scatter(list(map(get_axis_date, issues_dates)), list(map(get_total_issues, issues_dates)),
-                   marker='^', color='green', label='issues')
-        ax.scatter(list(map(get_axis_date, maturities_dates)), list(map(get_total_maturities, maturities_dates)),
-                   marker='v', color='red', label='maturities')
-        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_imd, legal_dates)),
-                color='green', linestyle='--', label='imd')
-
-        for n in legal_dates:
-            ax.annotate(str(int(get_imd(n))), (get_axis_date(n), int(get_imd(n))), color='green')
-
-        # when there is no correlation
-        plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury_delta, legal_dates)),
-                         color='red', alpha=0.15)
-
-        # plt - fed
-        ax.scatter(list(map(get_axis_date, fed_dates)), list(map(get_fed, fed_dates)),
-                color='#34ebab', marker='^', label='fed_maturities')
-        for n in fed_dates:
-            ax.annotate(str(int(get_fed(n))), (get_axis_date(n), int(get_fed(n))),color='#34ebab')
-
-        #plt - fed_acceptance
-        ax.scatter(list(map(get_axis_date, fed_acceptance_dates)), list(map(get_fed_acceptance, fed_acceptance_dates)),
-                   color='#a10e9a', marker='H', label='fed_acceptance')
-        for n in fed_acceptance_dates:
-            ax.annotate(str(int(get_fed_acceptance(n))), (get_axis_date(n), int(get_fed_acceptance(n))), color='#a10e9a')
-
-        #plt - mbs
-        ax.scatter(list(map(get_axis_date, mbs_dates)), list(map(get_mbs, mbs_dates)),
-                   color='#824a00', marker='H', label='mbs')
-        for n in mbs_dates:
-            ax.annotate(str(int(get_mbs(n))), (get_axis_date(n), int(get_mbs(n))), color='#824a00')
-
-        # plt - swap
-        ax.scatter(list(map(get_axis_date, swap_dates)), list(map(get_swap, swap_dates)),
-                   color='#2a5859', marker='*', label='swap')
-        for n in swap_dates:
-            ax.annotate(str(int(get_swap(n))), (get_axis_date(n), int(get_swap(n))), color='#2a5859')
-
-
-        # plt - SUPER DATA
-        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data, legal_dates)),
-                   color='#a10e9a', label='super_data')
-
-        # plt - SUPER DATA MBS
-        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs, legal_dates)),
-                color='#824a00', label='super_data_mbs')
-
-        # plt - SUPER DATA MBS SWAP
-        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
-                color='#2a5859', label='super_data_mbs_swap')
-
-        plt.grid(True)
-        plt.legend()
-        plt.show()
-        print('thank you')
-    elif type == 1:
-        show_my_plot(legal_dates)
-        "" "
-        # plt - !!!! MINUS !!! SUPER DATA MBS
-        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_minus_super_data_mbs, legal_dates)),
-                color='#9542f5', label='super_data_mbs')
-
-        # snp data
-        ax.plot(list(map(get_axis_date, snp_data)), list(map(get_snp_delta, snp_data)), color='orange', label='S&P')
-        ax.scatter(list(map(get_axis_date, snp_data)), list(map(get_snp_delta, snp_data)), marker='o', color='orange')
-        for n in snp_data:
-            ax.annotate(str(n['delta']), (get_axis_date(n), n['delta']*1000))
-
-
-        # plt - problems
-        plt.fill_between(list(map(get_axis_date, dates)), list(map(get_minus_super_data_mbs_snp_cor, dates)),
-                         color='#4f964a', alpha=0.25)
-                         
-        # plt - SUPER DATA MBS SWAP
-        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
-                color='#2a5859', label='super_data_mbs_swap')
-        " ""
-        """
+    show_my_plot(legal_dates, type)
 
 
 
@@ -793,7 +721,8 @@ def main(date_range, type):
 
 
 
-date_range = ['01', '03', '2020', '05', '06', '2020']
+
+date_range = ['01', '09', '2019', '24', '01', '2020']
 main(date_range, 1)
 
 

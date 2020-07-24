@@ -2,8 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="05856821-27c3-4792-a801-e411e0a0cf16" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/stocks.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/fedAcceptanceData.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/fedAcceptanceData.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/fedData.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/fedData.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/imdData.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/imdData.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/UI.py" beforeDir="false" afterPath="$PROJECT_DIR$/UI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/moneyHeist.py" beforeDir="false" afterPath="$PROJECT_DIR$/moneyHeist.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,9 +31,11 @@
   <component name="ProjectId" id="1eoV691DUYJmtLPUkOvmPy3iwVU" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
+    <option name="flattenPackages" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
+    <option name="showModules" value="false" />
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
@@ -104,27 +111,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="holidays" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="IdeaProjects" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/.idea" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\hadar\IdeaProjects\holidays.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="moneyHeist (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="IdeaProjects" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -146,13 +132,34 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="stocks" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="IdeaProjects" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/stocks.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.moneyHeist (1)" />
         <item itemvalue="Python.UI (1)" />
+        <item itemvalue="Python.stocks" />
         <item itemvalue="Python.UI" />
         <item itemvalue="Python.holidays (1)" />
-        <item itemvalue="Python.holidays" />
       </list>
     </recent_temporary>
   </component>
@@ -178,42 +185,46 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="614" y="119" key="CommitChangelistDialog2/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595054701268" />
-    <state width="1877" height="318" key="GridCell.Tab.0.bottom" timestamp="1595591254174">
+    <state width="391" height="466" key="DebuggerActiveHint" timestamp="1595594547024">
+      <screen x="0" y="0" width="1920" height="1050" />
+    </state>
+    <state width="391" height="466" key="DebuggerActiveHint/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595594547024" />
+    <state width="1877" height="362" key="GridCell.Tab.0.bottom" timestamp="1595607417043">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="318" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595591254174" />
-    <state width="1877" height="318" key="GridCell.Tab.0.center" timestamp="1595591254174">
+    <state width="1877" height="362" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595607417043" />
+    <state width="1877" height="362" key="GridCell.Tab.0.center" timestamp="1595607417043">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="318" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595591254174" />
-    <state width="1877" height="318" key="GridCell.Tab.0.left" timestamp="1595591254174">
+    <state width="1877" height="362" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595607417043" />
+    <state width="1877" height="362" key="GridCell.Tab.0.left" timestamp="1595607417043">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="318" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595591254174" />
-    <state width="1877" height="318" key="GridCell.Tab.0.right" timestamp="1595591254174">
+    <state width="1877" height="362" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595607417043" />
+    <state width="1877" height="362" key="GridCell.Tab.0.right" timestamp="1595607417043">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="212" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
-    <state width="1877" height="318" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595591254174" />
-    <state width="1877" height="296" key="GridCell.Tab.1.bottom" timestamp="1595586246173">
+    <state width="1877" height="362" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595607417043" />
+    <state width="1877" height="341" key="GridCell.Tab.1.bottom" timestamp="1595603839196">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="296" key="GridCell.Tab.1.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595586246173" />
-    <state width="1877" height="296" key="GridCell.Tab.1.center" timestamp="1595586246173">
+    <state width="1877" height="341" key="GridCell.Tab.1.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595603839196" />
+    <state width="1877" height="341" key="GridCell.Tab.1.center" timestamp="1595603839196">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="296" key="GridCell.Tab.1.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595586246173" />
-    <state width="1877" height="296" key="GridCell.Tab.1.left" timestamp="1595586246173">
+    <state width="1877" height="341" key="GridCell.Tab.1.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595603839196" />
+    <state width="1877" height="341" key="GridCell.Tab.1.left" timestamp="1595603839196">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="296" key="GridCell.Tab.1.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595586246173" />
-    <state width="1877" height="296" key="GridCell.Tab.1.right" timestamp="1595586246173">
+    <state width="1877" height="341" key="GridCell.Tab.1.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595603839196" />
+    <state width="1877" height="341" key="GridCell.Tab.1.right" timestamp="1595603839196">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="296" key="GridCell.Tab.1.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595586246173" />
+    <state width="1877" height="341" key="GridCell.Tab.1.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595603839196" />
     <state width="965" height="533" key="XDebugger.FullValuePopup" timestamp="1595503376225">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
@@ -226,33 +237,28 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state x="616" y="243" key="run.anything.popup/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595408228969" />
-    <state x="623" y="231" width="672" height="678" key="search.everywhere.popup" timestamp="1595584764114">
+    <state x="623" y="231" width="672" height="678" key="search.everywhere.popup" timestamp="1595591424037">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state x="623" y="231" width="672" height="678" key="search.everywhere.popup/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595584764114" />
+    <state x="623" y="231" width="672" height="678" key="search.everywhere.popup/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595591424037" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/moneyHeist.py</url>
-          <line>287</line>
-          <option name="timeStamp" value="87" />
+          <line>665</line>
+          <option name="timeStamp" value="115" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/moneyHeist.py</url>
-          <line>294</line>
-          <option name="timeStamp" value="88" />
+          <line>667</line>
+          <option name="timeStamp" value="116" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/moneyHeist.py</url>
-          <line>765</line>
-          <option name="timeStamp" value="101" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/UI.py</url>
-          <line>62</line>
-          <option name="timeStamp" value="103" />
+          <line>664</line>
+          <option name="timeStamp" value="118" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

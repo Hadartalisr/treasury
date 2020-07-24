@@ -93,6 +93,14 @@ def get_fed(d):
     return int(d['fed']) / 1000000
 
 
+def get_gspc(d):
+    return int(d['gspc']) * 50
+
+
+def get_djia(d):
+    return int(d['djia']) * 50
+
+
 def get_super_data(d):
     return int(d['super_data'])/ 1000000
 
@@ -189,17 +197,16 @@ def show_my_plot(dates, type):
         # ax.axhline(y=0, color='black', linestyle='-')
 
         # plt - treasury_delta
-        label = bidialg.get_display('הפרש האוצר בפועל')
         plt.plot(ind, list(map(get_treasury_delta_from_obj, dates)), color='#fe5722',
-                 linestyle='-', label=label)
+                 linestyle='-', label='לעופב רצואה שרפה')
         for i in range(0, length):
             treasury_delta = get_treasury_delta_from_obj(dates[i])
             plt.annotate(treasury_delta, (i, treasury_delta), color='#fe5722')
 
         # plt - issues + maturities + imd
-        ax.scatter(ind, list(map(get_total_issues, dates)), marker='^', color='#b8f5ba', label='הנפקות של האוצר')
-        ax.scatter(ind, list(map(get_total_maturities, dates)), marker='v', color='#f5b8b8', label='פרעונות של האוצר')
-        ax.plot(ind, list(map(get_imd, dates)), color='#fe9800', linestyle='--', label='הפרש בין הנפקות האוצר לפרעונות האוצר')
+        ax.scatter(ind, list(map(get_total_issues, dates)), marker='^', color='#b8f5ba', label='רצואה לש תוקפנה')
+        ax.scatter(ind, list(map(get_total_maturities, dates)), marker='v', color='#f5b8b8', label='רצואה לש תונוערפ')
+        ax.plot(ind, list(map(get_imd, dates)), color='#fe9800', linestyle='--', label='רצואה תונוערפל רצואה תוקפנה ןיב שרפה')
         for i in range(0, length):
             imd = int(get_imd(dates[i]))
             ax.annotate(str(imd), (i, imd), color='#fe9800')
@@ -210,47 +217,57 @@ def show_my_plot(dates, type):
                          color='red', alpha=0.15)
         """
         # plt - fed
-        ax.scatter(ind, list(map(get_fed, dates)),color='#cddc39', marker='^', label='גלגול חוב של הפד')
+        ax.scatter(ind, list(map(get_fed, dates)),color='#cddc39', marker='^', label='דפה לש בוח לוגלג')
         for i in range(0, length):
             fed_ma = int(get_fed(dates[i]))
             ax.annotate(str(fed_ma), (i, fed_ma), color='#cddc39')
 
         #plt - fed_acceptance
-        ax.scatter(ind, list(map(get_fed_acceptance, dates)), color='#029688', marker='H', label='השקעות של הפד')
+        ax.scatter(ind, list(map(get_fed_acceptance, dates)), color='#029688', marker='H', label='דפה לש תועקשה')
         for i in range(0, length):
             fed_acc = int(get_fed_acceptance(dates[i]))
             ax.annotate(str(fed_acc), (i, fed_acc), color='#029688')
 
         #plt - mbs
-        ax.scatter(ind, list(map(get_mbs, dates)), color='#e91d64', marker='H', label='אג"ח מגובה משכנתאות')
+        ax.scatter(ind, list(map(get_mbs, dates)), color='#e91d64', marker='H', label='תואתנכשמ הבוגמ ח"גא')
         for i in range(0, length):
             mbs = int(get_mbs(dates[i]))
             ax.annotate(str(mbs), (i, mbs), color='#e91d64')
 
-        """"
+
         # plt - swap
-        ax.scatter(list(map(get_axis_date, swap_dates)), list(map(get_swap, swap_dates)),
-                   color='#2a5859', marker='*', label='swap')
-        for n in swap_dates:
-            ax.annotate(str(int(get_swap(n))), (get_axis_date(n), int(get_swap(n))), color='#2a5859')
+        ax.scatter(ind, list(map(get_swap, dates)), color='#4cb050', marker='*', label='יארשא יוניש')
+        for i in range(0, length):
+            swap = int(get_swap(dates[i]))
+            ax.annotate(str(swap), (i, swap), color='#4cb050')
 
 
         # plt - SUPER DATA
-        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data, legal_dates)),
-                color='#a10e9a', label='super_data')
+        ax.plot(ind, list(map(get_super_data, dates)), color='grey', label='super_data')
 
         # plt - SUPER DATA MBS
-        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs, legal_dates)),
-                color='#824a00', label='super_data_mbs')
+        ax.plot(ind, list(map(get_super_data_mbs, dates)), color='#00ff00', label='super_data_mbs')
 
         # plt - SUPER DATA MBS SWAP
-        ax.plot(list(map(get_axis_date, legal_dates)), list(map(get_super_data_mbs_swap, legal_dates)),
-                color='#2a5859', label='super_data_mbs_swap')
+        ax.plot(ind, list(map(get_super_data_mbs_swap, dates)), color='#ff004f', label='super_data_mbs_swap')
 
-        
-        plt.show()
-        print('thank you')
+    elif type == 1:
+        for i in range(0, length):
+            super_data_mbs = int(get_minus_super_data_mbs(dates[i]))
+            ax.annotate(str(super_data_mbs), (i, super_data_mbs), color='#ff004f')
+        ax.scatter(ind, list(map(get_minus_super_data_mbs, dates)), color='#ff004f', label='super_data_mbs_swap')
+
         """
+        # plt - !!!! MINUS !!! SUPER DATA MBS SWAP
+        ax.plot(ind, list(map(get_minus_super_data_mbs, dates)), color='#ff004f', label='minus_super_data_mbs')
+
+        #plt - djia
+        ax.plot(ind, list(map(get_djia, dates)), color='#75002d', label='Dow Jones Industrial Average')
+
+        #plt gspc
+        ax.plot(ind, list(map(get_gspc, dates)), color='#670075', label='S&P 500')
+        """
+
     plt.grid(True)
     plt.legend()
     plt.show()
