@@ -322,9 +322,9 @@ def update_dates_fed_acceptance(da):
         if d['fed_acceptance'] == 0 and is_legal_date and weekday not in (5, 6, 0) \
                 and get_date_from_my_date(d['date']) < datetime.date.today() + datetime.timedelta(days=7) :
             print('fed_acceptance error in date:' + d['date'])
-    y = json.dumps(fed_acceptance_data)
-    with open('.idea/fedAcceptanceData.json', 'w') as f:
-        json.dump(y, f)
+    #y = json.dumps(fed_acceptance_data)
+    #with open('.idea/fedAcceptanceData.json', 'w') as f:
+    #   json.dump(y, f)
 
 
 def get_maturity_between_dates(d1, m1, y1, d2, m2, y2):
@@ -674,6 +674,54 @@ def update_stocks(da):
             d['djia'] = -1000000
 
 
+def get_repo_url():
+    today = get_my_date_from_date(datetime.date.today() + datetime.timedelta(days=7))
+    today_date = get_day_from_my_date(today)
+    today_month = get_month_from_my_date(today)
+    today_year = get_year_from_my_date(today)
+    url_past_date = '08012019'
+    url_today_date = today_month+today_date+today_year
+    url = 'https://websvcgatewayx2.frbny.org/autorates_tomo_external/services/v1_0/tomo/' + \
+          'retrieveHistoricalExcel?f='+url_past_date+'&t='+url_today_date+'&ctt=true&&cta=true&ctm=true'
+    return url
+
+
+def get_repo_delta():
+    url = get_repo_url()
+    resp = requests.get(url)
+    resp = resp.content
+    data = pd.read_excel(resp)
+    df = pd.DataFrame(data)
+    df.columns = [c.replace('Total-Accept', 'Accept') for c in df.columns]
+    df.columns = [c.replace('Delivery Date', 'Delivery') for c in df.columns]
+    df.columns = [c.replace('Maturity Date', 'Maturity') for c in df.columns]
+    df = df[['Accept', 'Delivery','Maturity']]
+    print(df.loc[:100])
+    delivery = df[['Delivery', 'Accept']].groupby('Delivery').sum().reset_index()
+    delivery = delivery.set_index('Delivery')
+    delivery.columns = [c.replace('Accept', 'DeliveryAccept') for c in delivery.columns]
+    print(delivery.head())
+    print(len(delivery))
+    maturity = df[['Maturity', 'Accept']].groupby('Maturity').sum().reset_index()
+    maturity = maturity.set_index('Maturity')
+    maturity.columns = [c.replace('Accept', 'MaturityAccept') for c in maturity.columns]
+    print(maturity.head())
+    print(len(maturity))
+    final_df = pd.concat([delivery, maturity], axis=1, sort=False)
+    print(final_df.head())
+    print(len(final_df))
+
+
+"""
+    df = df.groupby('Settlement_Date').sum().reset_index()
+    df['Settlement_Date'] = df['Settlement_Date'].apply(lambda row: get_my_date_from_date(row))
+    accepted = df[df['Settlement_Date'] == date]
+    if len(accepted) > 0:
+        accepted = df.iloc[0]['Accepted']
+    else:
+        accepted = 0
+    """
+
 
 def sort_dates(d):
     d = d.sort(key=lambda x: get_date_from_my_date(x['date']))
@@ -722,7 +770,8 @@ def main(date_range, type):
 
 
 
-date_range = ['01', '09', '2019', '24', '01', '2020']
-main(date_range, 1)
+#date_range = ['01', '03', '2020', '20', '07', '2020']
+#main(date_range, 1)
 
+get_repo_delta()
 
