@@ -113,20 +113,28 @@ def get_super_data_mbs_swap(d):
     return int(d['super_data_mbs_swap'])/1000000
 
 
-def get_minus_super_data_mbs(d):
-    return -1 *int(get_super_data_mbs(d))
+def get_super_data_mbs_swap_repo(d):
+    return int(d['super_data_mbs_swap_repo'])/1000000
+
+
+def get_minus_super_data_mbs_swap_repo(d):
+    return -1 *int(get_super_data_mbs_swap_repo(d))
 
 
 def get_fed_acceptance(d):
-    return d['fed_acceptance'] / 1000000
+    return d['fed_acceptance']/1000000
 
 
 def get_mbs(d):
-    return d['mbs'] / 1000000
+    return d['mbs']/1000000
 
 
 def get_swap(d):
-    return d['swap']/ 1000000
+    return d['swap']/1000000
+
+
+def get_repo_delta(d):
+    return d['repo_delta']/1000000
 
 # endregion
 
@@ -241,6 +249,11 @@ def show_my_plot(dates, type):
             swap = int(get_swap(dates[i]))
             ax.annotate(str(swap), (i, swap), color='#4cb050')
 
+        # plt - swap
+        ax.scatter(ind, list(map(get_repo_delta, dates)), color='#ad3751', marker="s", label='ופיר שרפה')
+        for i in range(0, length):
+            repo_delta = int(get_repo_delta(dates[i]))
+            ax.annotate(str(repo_delta), (i, repo_delta), color='#ad3751')
 
         # plt - SUPER DATA
         ax.plot(ind, list(map(get_super_data, dates)), color='grey', label='super_data')
@@ -249,13 +262,17 @@ def show_my_plot(dates, type):
         ax.plot(ind, list(map(get_super_data_mbs, dates)), color='#00ff00', label='super_data_mbs')
 
         # plt - SUPER DATA MBS SWAP
-        ax.plot(ind, list(map(get_super_data_mbs_swap, dates)), color='#ff004f', label='super_data_mbs_swap')
+        ax.plot(ind, list(map(get_super_data_mbs_swap, dates)), color='#ff0000', label='super_data_mbs_swap')
+
+        # plt - SUPER DATA MBS SWAP REPO
+        ax.plot(ind, list(map(get_super_data_mbs_swap_repo, dates)), color='#ff004f', label='super_data_mbs_swap_repo')
 
     elif type == 1:
         for i in range(0, length):
-            super_data_mbs = int(get_minus_super_data_mbs(dates[i]))
+            super_data_mbs = int(get_minus_super_data_mbs_swap_repo(dates[i]))
             ax.annotate(str(super_data_mbs), (i, super_data_mbs), color='#ff004f')
-        ax.scatter(ind, list(map(get_minus_super_data_mbs, dates)), color='#ff004f', label='super_data_mbs_swap')
+        ax.scatter(ind, list(map(get_minus_super_data_mbs_swap_repo, dates)), color='#ff004f',
+                   label='super_data_mbs_swap')
 
         """
         # plt - !!!! MINUS !!! SUPER DATA MBS SWAP
@@ -267,6 +284,12 @@ def show_my_plot(dates, type):
         #plt gspc
         ax.plot(ind, list(map(get_gspc, dates)), color='#670075', label='S&P 500')
         """
+    elif type == 2:
+        # plt - swap
+        ax.plot(ind, list(map(get_repo_delta, dates)), color='#ad3751', label='ופיר שרפה')
+        for i in range(0, length):
+            repo_delta = int(get_repo_delta(dates[i]))
+            ax.annotate(str(repo_delta), (i, repo_delta), color='#ad3751')
 
     plt.grid(True)
     plt.legend()

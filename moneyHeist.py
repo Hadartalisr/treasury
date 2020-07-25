@@ -507,6 +507,14 @@ def update_super_data_mbs_swap(d):
         date['super_data_mbs_swap'] = int(super_data_mbs) - int(swap)
 
 
+def update_super_data_mbs_swap_repo(d):
+    for date in d:
+        super_data_mbs_swap = date['super_data_mbs_swap']
+        repo_delta = date['repo_delta']
+        date['super_data_mbs_swap_repo'] = int(super_data_mbs_swap) - int(repo_delta)
+
+
+
 """
 def get_imd_treasury_delta(d):
     imd = get_imd(d)
@@ -686,8 +694,28 @@ def get_repo_url():
     return url
 
 
-def get_repo_delta():
+def get_row_repo_delta(row):
+    delivery = 0
+    maturity = 0
+    if pd.notna(row.DeliveryAccept):
+        delivery = float(row['DeliveryAccept'])
+    if pd.notna(row.MaturityAccept):
+        maturity = float(row['MaturityAccept'])
+    return delivery-maturity
+    #int(row['DeliveryAccept']) - int(row['MaturityAccept'])
+
+
+def get_my_date_from_repo_date(repo_date):
+    month = repo_date[0:2]
+    day = repo_date[3:5]
+    year = repo_date[-2:]
+    str = year+month+day+'00'
+    return str
+
+
+def get_repo_df():
     url = get_repo_url()
+    print(url)
     resp = requests.get(url)
     resp = resp.content
     data = pd.read_excel(resp)
@@ -696,7 +724,6 @@ def get_repo_delta():
     df.columns = [c.replace('Delivery Date', 'Delivery') for c in df.columns]
     df.columns = [c.replace('Maturity Date', 'Maturity') for c in df.columns]
     df = df[['Accept', 'Delivery','Maturity']]
-    print(df.loc[:100])
     delivery = df[['Delivery', 'Accept']].groupby('Delivery').sum().reset_index()
     delivery = delivery.set_index('Delivery')
     delivery.columns = [c.replace('Accept', 'DeliveryAccept') for c in delivery.columns]
@@ -707,20 +734,21 @@ def get_repo_delta():
     maturity.columns = [c.replace('Accept', 'MaturityAccept') for c in maturity.columns]
     print(maturity.head())
     print(len(maturity))
-    final_df = pd.concat([delivery, maturity], axis=1, sort=False)
+    final_df = pd.concat([delivery, maturity], axis=1, sort=False).reset_index()
     print(final_df.head())
-    print(len(final_df))
+    final_df['delta'] = final_df.apply(lambda row: get_row_repo_delta(row), axis=1)
+    final_df['date'] = final_df['index'].apply(lambda row: get_my_date_from_repo_date(row))
+    return final_df
 
 
-"""
-    df = df.groupby('Settlement_Date').sum().reset_index()
-    df['Settlement_Date'] = df['Settlement_Date'].apply(lambda row: get_my_date_from_date(row))
-    accepted = df[df['Settlement_Date'] == date]
-    if len(accepted) > 0:
-        accepted = df.iloc[0]['Accepted']
-    else:
-        accepted = 0
-    """
+def update_repo_delta(d):
+    df = get_repo_df()
+    for date in d:
+        repo_delta = 0
+        search_result = df[df['date'] == date['date']]
+        if len(search_result) > 0:
+            repo_delta = search_result.iloc[0]['delta']
+        date['repo_delta'] = repo_delta * 1000000000
 
 
 def sort_dates(d):
@@ -728,6 +756,18 @@ def sort_dates(d):
 
 
 snp_data = []
+
+class color:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
 
 
 def main(date_range, type):
@@ -737,26 +777,30 @@ def main(date_range, type):
     dates = generate_dates(date_range)
     minDate = add_days_and_get_date(dates[0]['date'], -2)
     maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
-    print('start - update_dates_treasury_delta')
+    print(color.BOLD + 'start - update_dates_treasury_delta' + color.END)
     update_dates_treasury_delta(dates)
-    print('start - update_dates_imd')
+    print(color.BOLD + 'start - update_dates_imd' + color.END)
     update_dates_imd(dates)
-    print('start - update_dates_fed')
+    print(color.BOLD + 'start - update_dates_fed' + color.END)
     update_dates_fed(dates)
-    print('start - update_dates_fed_acceptance')
+    print(color.BOLD + 'start - update_dates_fed_acceptance' + color.END)
     update_dates_fed_acceptance(dates)
-    print('start - update_dates_ambs')
+    print(color.BOLD + 'start - update_dates_ambs' + color.END)
     update_dates_ambs(dates)
-    print('start - update_swap_delta')
+    print(color.BOLD + 'start - update_swap_delta' + color.END)
     update_swap_delta(dates)
-    print('start - update_super_data')
-    update_super_data(dates)
-    print('start - update_super_data_mbs')
-    update_super_data_mbs(dates)
-    print('start - update_super_data_mbs_swap')
-    update_super_data_mbs_swap(dates)
-    print('start - update_stocks')
+    print(color.BOLD + 'start - update_stocks' + color.END)
     update_stocks(dates)
+    print(color.BOLD + 'start - update_repo_delta' + color.END)
+    update_repo_delta(dates)
+    print(color.BOLD + 'start - update_super_data' + color.END)
+    update_super_data(dates)
+    print(color.BOLD + 'start - update_super_data_mbs' + color.END)
+    update_super_data_mbs(dates)
+    print(color.BOLD + 'start - update_super_data_mbs_swap' + color.END)
+    update_super_data_mbs_swap(dates)
+    print(color.BOLD + 'start - update_super_data_mbs_swap_repo' + color.END)
+    update_super_data_mbs_swap_repo(dates)
     # calculate dates
     illegal_dates = [x for x in dates if x['is_legal_date'] is False]
     legal_dates = [x for x in dates if x['is_legal_date'] is True]
@@ -770,8 +814,7 @@ def main(date_range, type):
 
 
 
-#date_range = ['01', '03', '2020', '20', '07', '2020']
-#main(date_range, 1)
+date_range = ['01', '03', '2020', '20', '07', '2020']
+main(date_range, 0)
 
-get_repo_delta()
 
