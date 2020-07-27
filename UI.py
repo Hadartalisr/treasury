@@ -78,47 +78,63 @@ def get_axis_date(d):
 
 
 def get_treasury_delta_from_obj(d):
-    return int(d['treasury_delta'])
+    return float(d['treasury_delta'])
 
 
 def get_total_issues(d):
-    return int(d['total_issues']) / 1000000
+    return float(d['total_issues']) / 1000000
 
 
 def get_imd(d):
-    return int(d['imd']) / 1000000
+    return float(d['imd']) / 1000000
 
 
 def get_fed(d):
-    return int(d['fed']) / 1000000
+    return float(d['fed']) / 1000000
 
 
 def get_gspc(d):
-    return int(d['gspc']) * 50
+    return float(d['gspc']) * 50
 
 
 def get_djia(d):
-    return int(d['djia']) * 50
+    return float(d['djia']) * 50
+
+
+def get_usoil(d):
+    return float(d['usoil']) * 25000
+
+
+def get_tsla(d):
+    return float(d['tsla']) * 1000
+
+
+def get_dxy(d):
+    return float(d['dxy']) * 30000
 
 
 def get_super_data(d):
-    return int(d['super_data'])/ 1000000
+    return float(d['super_data'])/ 1000000
 
 
 def get_super_data_mbs(d):
-    return int(d['super_data_mbs'])/ 1000000
+    return float(d['super_data_mbs'])/ 1000000
 
 
 def get_super_data_mbs_swap(d):
-    return int(d['super_data_mbs_swap'])/1000000
+    return float(d['super_data_mbs_swap'])/1000000
+
+
+def get_minus_super_data_mbs_swap(d):
+    return -1 *float(get_super_data_mbs_swap(d))
 
 
 def get_super_data_mbs_swap_repo(d):
-    return int(d['super_data_mbs_swap_repo'])/1000000
+    return float(d['super_data_mbs_swap_repo'])/1000000
 
 
 def get_minus_super_data_mbs_swap_repo(d):
-    return -1 *int(get_super_data_mbs_swap_repo(d))
+    return -1 *float(get_super_data_mbs_swap_repo(d))
 
 
 def get_fed_acceptance(d):
@@ -199,10 +215,11 @@ def show_my_plot(dates, type):
     fig, ax = plt.subplots()
     ind = np.arange(length)  # the evenly spaced plot indices
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
+    ax.axhline(y=0, color='black', linestyle='-')
 
     if type == 0:
         # x - axe line
-        # ax.axhline(y=0, color='black', linestyle='-')
+        ax.axhline(y=0, color='black', linestyle='-')
 
         # plt - treasury_delta
         plt.plot(ind, list(map(get_treasury_delta_from_obj, dates)), color='#fe5722',
@@ -249,7 +266,7 @@ def show_my_plot(dates, type):
             swap = int(get_swap(dates[i]))
             ax.annotate(str(swap), (i, swap), color='#4cb050')
 
-        # plt - swap
+        # plt - repo
         ax.scatter(ind, list(map(get_repo_delta, dates)), color='#ad3751', marker="s", label='ופיר שרפה')
         for i in range(0, length):
             repo_delta = int(get_repo_delta(dates[i]))
@@ -268,11 +285,16 @@ def show_my_plot(dates, type):
         ax.plot(ind, list(map(get_super_data_mbs_swap_repo, dates)), color='#ff004f', label='super_data_mbs_swap_repo')
 
     elif type == 1:
+
         for i in range(0, length):
-            super_data_mbs = int(get_minus_super_data_mbs_swap_repo(dates[i]))
-            ax.annotate(str(super_data_mbs), (i, super_data_mbs), color='#ff004f')
-        ax.scatter(ind, list(map(get_minus_super_data_mbs_swap_repo, dates)), color='#ff004f',
-                   label='super_data_mbs_swap')
+            minus_super_data_mbs_swap_repo = int(get_minus_super_data_mbs_swap(dates[i]))
+            ax.annotate(str(minus_super_data_mbs_swap_repo), (i, minus_super_data_mbs_swap_repo), color='#ff004f')
+        ax.scatter(ind, list(map(get_minus_super_data_mbs_swap, dates)), color='#ff004f',
+                   label='before repo')
+
+        #plt - usoil
+        ax.plot(ind, list(map(get_dxy, dates)), color='#75002d', label='tsla')
+
 
         """
         # plt - !!!! MINUS !!! SUPER DATA MBS SWAP
@@ -285,11 +307,26 @@ def show_my_plot(dates, type):
         ax.plot(ind, list(map(get_gspc, dates)), color='#670075', label='S&P 500')
         """
     elif type == 2:
-        # plt - swap
+
+        # plt - repo
         ax.plot(ind, list(map(get_repo_delta, dates)), color='#ad3751', label='ופיר שרפה')
         for i in range(0, length):
             repo_delta = int(get_repo_delta(dates[i]))
             ax.annotate(str(repo_delta), (i, repo_delta), color='#ad3751')
+
+        for i in range(0, length):
+            super_data_mbs = int(get_super_data_mbs_swap(dates[i]))
+            ax.annotate(str(super_data_mbs), (i, super_data_mbs), color='black')
+        ax.scatter(ind, list(map(get_super_data_mbs_swap, dates)), color='black',
+                   label='before repo')
+
+        for i in range(0, length):
+            super_data_mbs = int(get_super_data_mbs_swap_repo(dates[i]))
+            ax.annotate(str(super_data_mbs), (i, super_data_mbs), color='#ff004f')
+        ax.scatter(ind, list(map(get_super_data_mbs_swap_repo, dates)), color='#ff004f',
+                   label='after repo')
+
+
 
     plt.grid(True)
     plt.legend()

@@ -1,10 +1,5 @@
 import datetime
 
-def get_date_format(days_to_sub):
-    x = datetime.datetime.today() - datetime.timedelta(days=days_to_sub)
-    x = x.strftime('%Y%m%d')[2:] + '00'
-    return x
-
 
 def get_my_date_from_date(date):
     return date.strftime('%Y%m%d')[2:] + '00'
@@ -44,3 +39,5 @@ def get_month_from_my_date(d):
 # date in my date format
 def get_year_from_my_date(d):
     return '20' + d[0:2]
+
+
