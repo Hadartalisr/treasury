@@ -17,6 +17,7 @@ import treasuryDelta
 import fedMaturities
 import fedInvestments
 import ambs
+import swap
 
 def get_snp_url():
     july_eighteen_period2 = 1595030400
@@ -169,32 +170,6 @@ def update_dates_treasury_delta(d):
 
 
 
-def get_swap_delta():
-    excel_url = "https://apps.newyorkfed.org/~/media/files/usd_liquidity_swap_amounts_outstanding.xlsx?la=en"
-    print(excel_url)
-    resp = requests.get(excel_url)
-    resp = resp.content
-    data = pd.read_excel(resp, header=1)
-    df = pd.DataFrame(data)
-    df.columns = [c.replace(' ', '_') for c in df.columns]
-    df = df[['Date', 'Total_Amount_Outstanding']]
-    df = df.set_index('Date').diff().reset_index()
-    df['Date'] = df.apply(lambda row : get_my_date_from_date(row['Date'] + datetime.timedelta(days=1)), axis=1)
-    df = df.iloc[1:]
-    df['Total_Amount_Outstanding'] = df.apply(lambda row: int(row['Total_Amount_Outstanding'])*-1, axis=1)
-    new_df = df.to_dict(orient='records')
-    return new_df
-
-
-def update_swap_delta(d):
-    swap_data =  get_swap_delta()
-    for date in d:
-        search_results = [x for x in swap_data if x['Date'] == date['date']]
-        if len(search_results) > 0:
-            date['swap'] = int(search_results[0]['Total_Amount_Outstanding'])*1000000
-        else:
-            date['swap'] = 0
-
 
 def update_stocks(da):
     gspc_stock = stocks.get_GSPC_stock()
@@ -234,6 +209,133 @@ def update_stocks(da):
             d['dxy'] = 0
 
 
+
+def export_dates_to_excel(d):
+    df = pd.DataFrame(d)
+    filepath = './.idea/legal_dates.xlsx'
+    df.to_excel(filepath, index=False)
+
+# snp_data = []
+
+class color:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
+
+
+# The process (main)
+def main(date_range, type):
+
+    pd.set_option('display.max_columns', 500)
+    pd.set_option('display.width', 1000)
+
+    # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
+
+    print(color.GREEN + color.BOLD + '***** start - generate_dates *****' + color.END)
+    dates = holidays.generate_dates(date_range)
+    print(dates[-20:])
+    print(color.PURPLE + color.BOLD + '***** end - generate_dates *****' + color.END)
+
+    length = len(dates)
+
+    print(color.GREEN + color.BOLD + '***** start - update_dates_issues_maturities *****' + color.END)
+    dates = issuesMaturities.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_dates_issues_maturities dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_dates_issues_maturities *****' + color.END)
+
+    print(color.GREEN + color.BOLD + '***** start - update_dates_treasury_delta *****' + color.END)
+    dates = treasuryDelta.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_dates_treasury_delta dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_dates_treasury_delta *****' + color.END)
+
+    print(color.GREEN + color.BOLD + '***** start - update_dates_fed_maturities *****' + color.END)
+    dates = fedMaturities.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_dates_fed_maturities dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_maturities *****' + color.END)
+
+    print(color.GREEN + color.BOLD + '***** start - update_dates_fed_investments *****' + color.END)
+    dates = fedInvestments.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_dates_fed_investments dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_investments *****' + color.END)
+
+    print(color.GREEN + color.BOLD + '***** start - update_dates_ambs *****' + color.END)
+    dates = ambs.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_dates_ambs dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_dates_ambs *****' + color.END)
+
+    print(color.GREEN + color.BOLD + '***** start - update_swap_delta *****' + color.END)
+    dates = swap.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_swap_delta dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_swap_delta *****' + color.END)
+
+
+
+
+    """
+
+    print(color.BOLD + 'start - update_swap_delta' + color.END)
+    update_swap_delta(dates)
+    print(color.BOLD + 'start - update_stocks' + color.END)
+    update_stocks(dates)
+    print(color.BOLD + 'start - update_repo_delta' + color.END)
+    update_repo_delta(dates)
+    print(color.BOLD + 'start - update_super_data' + color.END)
+    update_super_data(dates)
+    print(color.BOLD + 'start - update_super_data_mbs' + color.END)
+    update_super_data_mbs(dates)
+    print(color.BOLD + 'start - update_super_data_mbs_swap' + color.END)
+    update_super_data_mbs_swap(dates)
+    print(color.BOLD + 'start - update_super_data_mbs_swap_repo' + color.END)
+    update_super_data_mbs_swap_repo(dates)
+    """
+    #calculate dates
+    #illegal_dates = [x for x in dates if x['is_legal_date'] is False]
+    #legal_dates = [x for x in dates if x['is_legal_date'] is True]
+    export_dates_to_excel(dates)
+    """
+    show_my_plot(legal_dates, type)
+    """
+
+
+
+
+"""
+    minDate = add_days_and_get_date(dates[0]['date'], -2)
+    maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
+"""
+
+
+
+
+
+dr = ['09', '07', '2020', '02', '08', '2020']
+main(dr, 0)
+
+
+
+
+# stuff from the past - might will be usefull
+
+"""
 def get_repo_url():
     today = get_my_date_from_date(datetime.date.today() + datetime.timedelta(days=7))
     today_date = get_day_from_my_date(today)
@@ -301,122 +403,4 @@ def update_repo_delta(d):
         if len(search_result) > 0:
             repo_delta = search_result.iloc[0]['delta']
         date['repo_delta'] = repo_delta * 1000000000
-
-
-
-def export_dates_to_excel(d):
-    df = pd.DataFrame(d)
-    filepath = './.idea/legal_dates.xlsx'
-    df.to_excel(filepath, index=False)
-
-# snp_data = []
-
-class color:
-    PURPLE = '\033[95m'
-    CYAN = '\033[96m'
-    DARKCYAN = '\033[36m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END = '\033[0m'
-
-
-# The process (main)
-def main(date_range, type):
-
-    pd.set_option('display.max_columns', 500)
-    pd.set_option('display.width', 1000)
-
-    # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
-
-    print(color.GREEN + color.BOLD + '***** start - generate_dates *****' + color.END)
-    dates = holidays.generate_dates(date_range)
-    print(dates[-20:])
-    print(color.PURPLE + color.BOLD + '***** end - generate_dates *****' + color.END)
-
-    length = len(dates)
-
-    print(color.GREEN + color.BOLD + '***** start - update_dates_issues_maturities *****' + color.END)
-    dates = issuesMaturities.update_dates(dates)
-    print(dates[-20:])
-    if len(dates) > length:
-        raise Exception("update_dates_issues_maturities dates length was extended")
-    print(color.PURPLE + color.BOLD + '***** end - update_dates_issues_maturities *****' + color.END)
-
-    print(color.GREEN + color.BOLD + '***** start - update_dates_treasury_delta *****' + color.END)
-    dates = treasuryDelta.update_dates(dates)
-    print(dates[-20:])
-    if len(dates) > length:
-        raise Exception("update_dates_treasury_delta dates length was extended")
-    print(color.PURPLE + color.BOLD + '***** end - update_dates_treasury_delta *****' + color.END)
-
-    print(color.GREEN + color.BOLD + '***** start - update_dates_fed_maturities *****' + color.END)
-    dates = fedMaturities.update_dates(dates)
-    print(dates[-20:])
-    if len(dates) > length:
-        raise Exception("update_dates_treasury_delta dates length was extended")
-    print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_maturities *****' + color.END)
-
-    print(color.GREEN + color.BOLD + '***** start - update_dates_fed_investments *****' + color.END)
-    dates = fedInvestments.update_dates(dates)
-    print(dates[-20:])
-    if len(dates) > length:
-        raise Exception("update_dates_treasury_delta dates length was extended")
-    print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_investments *****' + color.END)
-
-    print(color.GREEN + color.BOLD + '***** start - update_dates_ambs *****' + color.END)
-    dates = ambs.update_dates(dates)
-    print(dates[:7])
-    print(dates[-7:])
-    print(color.PURPLE + color.BOLD + '***** end - update_dates_ambs *****' + color.END)
-    """
-    """
-    #export_dates_to_excel(dates)
-
-    """
-
-
-    print(color.BOLD + 'start - update_dates_ambs' + color.END)
-    update_dates_ambs(dates)
-    print(color.BOLD + 'start - update_swap_delta' + color.END)
-    update_swap_delta(dates)
-    print(color.BOLD + 'start - update_stocks' + color.END)
-    update_stocks(dates)
-    print(color.BOLD + 'start - update_repo_delta' + color.END)
-    update_repo_delta(dates)
-    print(color.BOLD + 'start - update_super_data' + color.END)
-    update_super_data(dates)
-    print(color.BOLD + 'start - update_super_data_mbs' + color.END)
-    update_super_data_mbs(dates)
-    print(color.BOLD + 'start - update_super_data_mbs_swap' + color.END)
-    update_super_data_mbs_swap(dates)
-    print(color.BOLD + 'start - update_super_data_mbs_swap_repo' + color.END)
-    update_super_data_mbs_swap_repo(dates)
-    """
-    #calculate dates
-    #illegal_dates = [x for x in dates if x['is_legal_date'] is False]
-    #legal_dates = [x for x in dates if x['is_legal_date'] is True]
-    export_dates_to_excel(dates)
-    """
-    show_my_plot(legal_dates, type)
-    """
-
-
-
-
 """
-    minDate = add_days_and_get_date(dates[0]['date'], -2)
-    maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
-"""
-
-
-
-
-
-dr = ['09', '07', '2020', '28', '07', '2020']
-main(dr, 0)
-
-

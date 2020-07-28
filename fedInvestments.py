@@ -63,7 +63,7 @@ def update_fed_investments_future(dates, df):
 
 # date in my_date format - return last wed in my_date format
 def get_last_wedensday(d, weeks):
-    cur_date = date.add_days_and_get_date(d, weeks*(-7))
+    cur_date = date.add_days_and_get_date(str(d), weeks*(-7))
     if cur_date.weekday() == 2:
         cur_date = cur_date - datetime.timedelta(days=1)
     while cur_date.weekday() != 2:
@@ -168,7 +168,7 @@ def get_past_fed_investments(d):
 def get_fed_acceptance_per_settlement_day(d):
     acceptance = 0
     today = datetime.date.today()
-    cur_date = date.get_date_from_my_date(d)
+    cur_date = date.get_date_from_my_date(str(d))
     if cur_date < today: # need the get the operation date of the day before
         acceptance = get_past_fed_investments(d)
     elif (cur_date-today).days < 15: # might be in the schedule
@@ -179,15 +179,12 @@ def get_fed_acceptance_per_settlement_day(d):
         cr = csv.reader(decoded_content.splitlines(), delimiter=',')
         my_list = list(cr)
         for row in my_list:
-            if row[0] == str(cur_date.month)+'/'+str(cur_date.day)+'/'+str(cur_date.year):
+            if row[2] == str(cur_date.month)+'/'+str(cur_date.day)+'/'+str(cur_date.year):
                 acceptance = acceptance + int(float(re.findall('\d+\.\d+', row[6])[0])*1000000000)
     else:
         acceptance = 0
     return acceptance
 
 
-
-
-print(get_fed_acceptance_url("20071000"))
-
+get_fed_acceptance_per_settlement_day("20080500")
 

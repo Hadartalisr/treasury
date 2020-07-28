@@ -89,11 +89,11 @@ def get_ambs_trade(excel_url):
 def generate_ambs_excel():
     obj = {'date': [], 'mbs':[]}
     df = pd.DataFrame(obj)
+    data = list()
     ambs_schedule = search_in_ambs_schedule_html()
     for index, month in enumerate(ambs_schedule):
         if index == 24:  # search in the last 2 years
             break
-        data = list()
         dates = get_ambs_trade(month['link'])
         for d in dates:
             search_result = [x for x in data if x['date'] == d['Contractual_Settlement_Date']]
@@ -101,13 +101,16 @@ def generate_ambs_excel():
                 data.append({'date': d['Contractual_Settlement_Date'], 'trade_amount': int(d['Trade_Amount'])})
             else:
                 search_result[0]['trade_amount'] = int(search_result[0]['trade_amount']) + int(d['Trade_Amount'])
-        for da in data:
-            df.loc[len(df)] = [da['date'], da['trade_amount']]
+    for da in data:
+        df.loc[len(df)] = [da['date'], da['trade_amount']]
     dump_mbs_df(df)
 
 
 def load_ambs_df():
-
+    excel_file = './.idea/ambs.xlsx'
+    data = pd.read_excel(excel_file)
+    df = pd.DataFrame(data)
+    return df
 
 
 def update_dates(d):
@@ -117,14 +120,10 @@ def update_dates(d):
         generate_ambs_excel()
         print("finished to update ambs data.")
     df = load_ambs_df()
-    update_treasury_delta(dates, df)
     df.date = df.date.astype(int)
-    dates.date = dates.date.astype(int)
-    dates = dates.merge(df, on="date", how="left")
-    dates.date.apply(str)
-    return dates
+    d.date = d.date.astype(int)
+    d = d.merge(df, on="date", how="left")
+    d.date.apply(str)
+    return d
 
 
-
-
-generate_ambs_excel()
