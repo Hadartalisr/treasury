@@ -158,58 +158,6 @@ def get_snp_delta(d):
 
 
 
-def update_dates_treasury_delta(d):
-    treasury_list = get_treasury_list(365)
-    for date in d:
-        search_result = [x for x in treasury_list if x['date'] == date['date']]
-        if len(search_result) == 1:
-            date['treasury_delta'] = search_result[0]['delta']
-        else:
-            date['treasury_delta'] = 0
-
-
-
-
-
-def update_stocks(da):
-    gspc_stock = stocks.get_GSPC_stock()
-    djia_stock = stocks.get_djia_stock()
-    usoil_stock = stocks.get_usoil_stock()
-    tsla_stock = stocks.get_tsla_stock()
-    dxy_stock = stocks.get_dxy_stock()
-    for d in da:
-        gscp = gspc_stock[gspc_stock['Date'] == d['date']]
-        if len(gscp) > 0:
-            d['gspc'] = gscp.iloc[0]['Adj Close']
-        else:
-            d['gspc'] = 0
-
-        djia = djia_stock[djia_stock['Date'] == d['date']]
-        if len(djia) > 0:
-            d['djia'] = djia.iloc[0]['Adj Close']
-        else:
-            d['djia'] = 0
-
-        usoil = usoil_stock[usoil_stock['Date'] == d['date']]
-        if len(usoil) > 0:
-            d['usoil'] = usoil.iloc[0]['Adj Close']
-        else:
-            d['usoil'] = 0
-
-        tsla = tsla_stock[tsla_stock['Date'] == d['date']]
-        if len(tsla) > 0:
-            d['tsla'] = tsla.iloc[0]['Adj Close']
-        else:
-            d['tsla'] = 0
-
-        dxy = dxy_stock[dxy_stock['Date'] == d['date']]
-        if len(dxy) > 0:
-            d['dxy'] = dxy.iloc[0]['Adj Close']
-        else:
-            d['dxy'] = 0
-
-
-
 def export_dates_to_excel(d):
     df = pd.DataFrame(d)
     filepath = './.idea/legal_dates.xlsx'
@@ -244,7 +192,7 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - generate_dates *****' + color.END)
 
     length = len(dates)
-
+    """
     print(color.GREEN + color.BOLD + '***** start - update_dates_issues_maturities *****' + color.END)
     dates = issuesMaturities.update_dates(dates)
     print(dates[-20:])
@@ -286,14 +234,18 @@ def main(date_range, type):
     if len(dates) > length:
         raise Exception("update_swap_delta dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_swap_delta *****' + color.END)
-
+    """
+    print(color.GREEN + color.BOLD + '***** start - update_stocks *****' + color.END)
+    dates = stocks.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_stocks dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_stocks *****' + color.END)
 
 
 
     """
 
-    print(color.BOLD + 'start - update_swap_delta' + color.END)
-    update_swap_delta(dates)
     print(color.BOLD + 'start - update_stocks' + color.END)
     update_stocks(dates)
     print(color.BOLD + 'start - update_repo_delta' + color.END)
@@ -327,7 +279,7 @@ def main(date_range, type):
 
 
 
-dr = ['09', '07', '2020', '02', '08', '2020']
+dr = ['09', '07', '2020', '25', '07', '2020']
 main(dr, 0)
 
 
