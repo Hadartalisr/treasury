@@ -755,6 +755,12 @@ def sort_dates(d):
     d = d.sort(key=lambda x: get_date_from_my_date(x['date']))
 
 
+def export_legal_dates_to_excel(d):
+    df = pd.DataFrame(d)
+    filepath = './.idea/legal_dates.xlsx'
+    df.to_excel(filepath, index=False)
+
+
 snp_data = []
 
 class color:
@@ -804,6 +810,7 @@ def main(date_range, type):
     # calculate dates
     illegal_dates = [x for x in dates if x['is_legal_date'] is False]
     legal_dates = [x for x in dates if x['is_legal_date'] is True]
+    export_legal_dates_to_excel(legal_dates)
     show_my_plot(legal_dates, type)
 
 
@@ -814,7 +821,7 @@ def main(date_range, type):
 
 
 
-date_range = ['01', '03', '2020', '20', '07', '2020']
+date_range = ['01', '03', '2020', '10', '08', '2020']
 main(date_range, 0)
 
 
