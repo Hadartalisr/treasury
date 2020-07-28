@@ -1,6 +1,6 @@
 import yfinance as yf
 import pandas as pd
-
+import math
 
 def get_GSPC_stock():
     return get_stock('^GSPC')
@@ -22,73 +22,43 @@ def get_dxy_stock():
     return get_stock('DX-Y.NYB')
 
 
+def get_change(row):
+    open = row['Open_x']
+    diff = row['Close_y']
+    if math.isnan(diff):
+        diff = 0
+    return (float(diff)*100)/float(open)
+
+
 def get_stock(symbol):
     tickers_list = [symbol]
-    data = yf.download(tickers_list, '2019-9-1')['Adj Close']
-    # print(data.head())
-    data = data.diff().reset_index()
-    data['Date'] = data['Date'].apply(lambda row: row.strftime('%Y%m%d')[2:] + '00')
-    data.columns = [c.replace('Adj Close', symbol) for c in data.columns]
-    print(data.head())
-    return data
+    data = yf.download(tickers_list, '2019-9-1')[['Close', 'Open']].reset_index()
+    data['date'] = data['Date'].apply(lambda row: row.strftime('%Y%m%d')[2:] + '00')
+    diff_df = data.set_index('date').diff().reset_index()
+    data.set_index('date', inplace=True)
+    new_df = data.merge(diff_df, on="date", how="left")
+    new_df[symbol] = new_df.apply(lambda row: get_change(row), axis=1)
+    return new_df[['date', symbol]]
 
 
 
 
 def update_dates(da):
     gspc_stock = get_GSPC_stock()
-    gspc_stock.Date = gspc_stock.Date.astype(int)
+    gspc_stock.date = gspc_stock.date.astype(int)
     djia_stock = get_djia_stock()
-    djia_stock.Date = djia_stock.Date.astype(int)
+    djia_stock.date = djia_stock.date.astype(int)
     usoil_stock = get_usoil_stock()
-    usoil_stock.Date = usoil_stock.Date.astype(int)
+    usoil_stock.date = usoil_stock.date.astype(int)
     tsla_stock = get_tsla_stock()
-    tsla_stock.Date = tsla_stock.Date.astype(int)
+    tsla_stock.date = tsla_stock.date.astype(int)
     dxy_stock = get_dxy_stock()
-    dxy_stock.Date = dxy_stock.Date.astype(int)
-    df = gspc_stock.merge(djia_stock, on="Date", how="left")
-    df = df.merge(usoil_stock, on="Date", how="left")
-    df = df.merge(tsla_stock, on="Date", how="left")
-    df = df.merge(dxy_stock, on="Date", how="left")
-    print(df[-50:])
+    dxy_stock.date = dxy_stock.date.astype(int)
+    df = gspc_stock.merge(djia_stock, on="date", how="left")
+    df = df.merge(usoil_stock, on="date", how="left")
+    df = df.merge(tsla_stock, on="date", how="left")
+    df = df.merge(dxy_stock, on="date", how="left")
+    da.date = da.date.astype(int)
+    da = da.merge(df, on="date", how="left")
+    da.date.apply(str)
     return da
-
-    """
-    dates.date = dates.date.astype(int)
-    dates = dates.merge(df, on="date", how="left")
-    dates.date.apply(str)
-    return dates
-    
-    for d in da:
-        gscp = gspc_stock[gspc_stock['Date'] == d['date']]
-        if len(gscp) > 0:
-            d['gspc'] = gscp.iloc[0]['Adj Close']
-        else:
-            d['gspc'] = 0
-
-        djia = djia_stock[djia_stock['Date'] == d['date']]
-        if len(djia) > 0:
-            d['djia'] = djia.iloc[0]['Adj Close']
-        else:
-            d['djia'] = 0
-
-        usoil = usoil_stock[usoil_stock['Date'] == d['date']]
-        if len(usoil) > 0:
-            d['usoil'] = usoil.iloc[0]['Adj Close']
-        else:
-            d['usoil'] = 0
-
-        tsla = tsla_stock[tsla_stock['Date'] == d['date']]
-        if len(tsla) > 0:
-            d['tsla'] = tsla.iloc[0]['Adj Close']
-        else:
-            d['tsla'] = 0
-
-        dxy = dxy_stock[dxy_stock['Date'] == d['date']]
-        if len(dxy) > 0:
-            d['dxy'] = dxy.iloc[0]['Adj Close']
-        else:
-            d['dxy'] = 0
-    """
-
-
