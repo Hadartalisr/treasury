@@ -10,6 +10,7 @@ import sys
 import re
 from UI import show_my_plot
 import stocks
+import date
 
 import holidays
 import issuesMaturities
@@ -19,39 +20,7 @@ import fedInvestments
 import ambs
 import swap
 
-def get_snp_url():
-    july_eighteen_period2 = 1595030400
-    july_eighteen_period1 = 1563408000
-    today = datetime.datetime.today()
-    ref = datetime.datetime(2020, 1, 1)
-    ref_2 = datetime.datetime(2020, 2, 1)
-    dif = days_between(ref_2, ref) - 1
-    delta_to_add = 86400 * dif
-    period1 = july_eighteen_period1 + delta_to_add
-    period2 = july_eighteen_period2 + delta_to_add
-    url = 'https://query1.finance.yahoo.com/v7/finance/download/%5EGSPC?period1=' + str(period1) + \
-          '&period2=' + str(period2) + '&interval=1d&events=history'
-    return url
 
-
-def get_snp_list():
-    excel_url = get_snp_url()
-    resp = requests.get(excel_url).text
-    my_list = list(resp.split("\n"))
-    del my_list[0]
-    for idx, element in enumerate(my_list):
-        my_list[idx] = list(element.split(","))
-        date = my_list[idx][0]
-        date = str(date[2:4]) + str(date[5:7]) + str(date[8:10]) + '00'
-        delta = round(float(my_list[idx][4]) - float(my_list[idx][1]), 2)
-        my_list[idx] = {'date': date, 'delta': delta}
-    return my_list
-
-
-
-
-# region axisAndJson
-...
 
 
 def update_super_data(d):
@@ -82,8 +51,8 @@ def update_super_data(d):
                 else:
                     cur_date['super_data'] = -maturities-fed_acceptance
                 if fed > 0: # need to update cur_date
-                    tomorrow = add_days_and_get_date(cur_date['date'], 1)
-                    tomorrow = get_my_date_from_date(tomorrow)
+                    tomorrow = date.add_days_and_get_date(cur_date['date'], 1)
+                    tomorrow = date.get_my_date_from_date(tomorrow)
                     search_result = [x for x in d if x['date'] == tomorrow]
                     if len(search_result) > 0:
                         cur_date = search_result[0]
@@ -118,42 +87,6 @@ def update_super_data_mbs_swap_repo(d):
         repo_delta = date['repo_delta']
         date['super_data_mbs_swap_repo'] = int(super_data_mbs_swap) - int(repo_delta)
 
-
-
-"""
-def get_imd_treasury_delta(d):
-    imd = get_imd(d)
-    number = 100000
-    treasury = get_treasury_delta_from_obj(d)
-    if imd == 0 or treasury == 0:
-        return number
-    elif imd*treasury < 0:
-        return -number
-    return number
-
-
-def get_minus_super_data_mbs_snp_cor(d):
-    is_legal_day =  bool(d['is_legal_date'])
-    if not is_legal_day:
-        return 0
-    minus_super_data = get_minus_super_data_mbs(d)
-    snp_d = 0
-    search_results = [x for x in snp_data if x['date'] == d['date']]
-    if len(search_results) > 0:
-        snp_d = get_snp_delta(search_results[0])
-    number = 100000
-    if minus_super_data == 0 or snp_d == 0:
-        return 0
-    elif minus_super_data*snp_d < 0:
-        return -number
-    return number
-"""
-
-def get_snp_delta(d):
-    return d['delta'] * 1000
-
-
-# endregion
 
 
 
@@ -192,7 +125,7 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - generate_dates *****' + color.END)
 
     length = len(dates)
-    """
+
     print(color.GREEN + color.BOLD + '***** start - update_dates_issues_maturities *****' + color.END)
     dates = issuesMaturities.update_dates(dates)
     print(dates[-20:])
@@ -234,7 +167,7 @@ def main(date_range, type):
     if len(dates) > length:
         raise Exception("update_swap_delta dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_swap_delta *****' + color.END)
-    """
+
     print(color.GREEN + color.BOLD + '***** start - update_stocks *****' + color.END)
     dates = stocks.update_dates(dates)
     print(dates[-20:])
@@ -270,10 +203,6 @@ def main(date_range, type):
 
 
 
-"""
-    minDate = add_days_and_get_date(dates[0]['date'], -2)
-    maxDate = add_days_and_get_date(dates[len(dates) - 1]['date'], 2)
-"""
 
 
 
