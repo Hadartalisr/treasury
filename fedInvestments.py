@@ -13,9 +13,9 @@ def update_dates(d):
     df = load_fed_investments_df()
     update_fed_investments(d, df)
     update_fed_investments_future(d, df)
-    d.set_index('date')
+    """d.set_index('date')
     df.set_index('date')
-    return pd.concat([d, df], axis=1, sort=False)
+    return pd.concat([d, df], axis=1, sort=False)"""
 
 
 def load_fed_investments_df():

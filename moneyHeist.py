@@ -16,7 +16,7 @@ import issuesMaturities
 import treasuryDelta
 import fedMaturities
 import fedInvestments
-
+import ambs
 
 def get_snp_url():
     july_eighteen_period2 = 1595030400
@@ -167,18 +167,6 @@ def update_dates_treasury_delta(d):
             date['treasury_delta'] = 0
 
 
-
-
-def update_dates_ambs(d):
-    with open('.idea/ambsData.json', 'r') as f:
-        data = json.load(f)
-        data = json.loads(data)
-    for date in d:
-        search_result = [x for x in data if date['date'] == x['date']]
-        if len(search_result) > 0:
-            date['mbs'] = search_result[0]['trade_amount']
-        else :
-            date['mbs'] = 0
 
 
 def get_swap_delta():
@@ -351,38 +339,47 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - generate_dates *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_dates_issues_maturities *****' + color.END)
-    dates = issuesMaturities.update_dates(dates)
+    #dates =
+    issuesMaturities.update_dates(dates)
     print(dates[:7])
     print(dates[-7:])
     print(color.PURPLE + color.BOLD + '***** end - update_dates_issues_maturities *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_dates_treasury_delta *****' + color.END)
-    dates = treasuryDelta.update_dates(dates)
+    #dates = \
+    treasuryDelta.update_dates(dates)
     print(dates[:7])
     print(dates[-7:])
     print(color.PURPLE + color.BOLD + '***** end - update_dates_treasury_delta *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_dates_fed_maturities *****' + color.END)
-    dates = fedMaturities.update_dates(dates)
+    #dates = \
+    fedMaturities.update_dates(dates)
     print(dates[:7])
     print(dates[-7:])
     print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_maturities *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_dates_fed_investments *****' + color.END)
-    dates = fedInvestments.update_dates(dates)
-    dates.reset_index(inplace=True)
+    #dates =
+    fedInvestments.update_dates(dates)
+    #dates.reset_index(inplace=True)
     print(dates[:7])
     print(dates[-7:])
     print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_investments *****' + color.END)
 
-    export_dates_to_excel(dates)
+    print(color.GREEN + color.BOLD + '***** start - update_dates_ambs *****' + color.END)
+    #dates =
+    ambs.update_dates_ambs(dates)
+    print(dates[:7])
+    print(dates[-7:])
+    print(color.PURPLE + color.BOLD + '***** end - update_dates_ambs *****' + color.END)
+
+
+    #export_dates_to_excel(dates)
 
     """
 
 
-
-    print(color.BOLD + 'start - update_dates_fed_acceptance' + color.END)
-    update_dates_fed_acceptance(dates)
     print(color.BOLD + 'start - update_dates_ambs' + color.END)
     update_dates_ambs(dates)
     print(color.BOLD + 'start - update_swap_delta' + color.END)

@@ -1,11 +1,15 @@
 #once in a month need to delete the data and create the new one
+import datetime
 import json
-
 import pandas as pd
 import requests
+import date
 
-from moneyHeist import get_my_date_from_date
 
+
+def dump_mbs_df(df):
+    excel_file = './.idea/fedInvestments.xlsx'
+    df.to_excel(excel_file, index=False)
 
 def search_in_ambs_schedule_html():
     url = "https://www.newyorkfed.org/markets/ambs/ambs_schedule.html"
@@ -63,7 +67,6 @@ def search_in_ambs_schedule_html():
     return ambs_schedule
 
 
-
 def get_ambs_trade(excel_url):
     try:
         print(excel_url)
@@ -75,7 +78,7 @@ def get_ambs_trade(excel_url):
         df.columns = [c.replace('*', '') for c in df.columns]
         df = df.set_index('Contractual_Settlement_Date')
         new_df = df.groupby(df.index).sum().reset_index()
-        new_df['Contractual_Settlement_Date'] = new_df.apply(lambda row : get_my_date_from_date(row['Contractual_Settlement_Date']), axis=1)
+        new_df['Contractual_Settlement_Date'] = new_df.apply(lambda row : date.get_my_date_from_date(row['Contractual_Settlement_Date']), axis=1)
         new_df.drop(['Coupon', 'Price'], axis=1, inplace=True)
         new_df = new_df.to_dict(orient='records')
     except Exception as ex:
@@ -83,7 +86,7 @@ def get_ambs_trade(excel_url):
     return new_df
 
 
-def generate_amdb_json():
+def generate_ambs_json():
     ambs_schedule = search_in_ambs_schedule_html()
     with open('.idea/ambsData.json', 'r') as f:
         data = json.load(f)
@@ -103,79 +106,18 @@ def generate_amdb_json():
         json.dump(y, f)
 
 
-generate_amdb_json()
+def update_dates_ambs(d):
+    if datetime.date.today().day in (11,12,13,14,15,16): # need to fix
+        generate_ambs_json()
+    with open('.idea/ambsData.json', 'r') as f:
+        data = json.load(f)
+        data = json.loads(data)
+    for index, row in d.iterrows():
+        a = row['date'][0]
+        search_result = [x for x in data if a == x['date']]
+        if len(search_result) > 0:
+            row['mbs'] = search_result[0]['trade_amount']
+        else:
+            row['mbs'] = 0
+    return  d
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-import datetime
-
-import xlrd
-import math
-# import numpy as np
-# import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.svm import SVR
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-
-
-def getData():
-    data = list()
-    workbook = xlrd.open_workbook('C:/money/economagic.xlsx')
-    worksheet = workbook.sheet_by_index(0)
-    rows = worksheet.nrows
-    for i in range (0, rows):
-        year = str(int(worksheet.cell(rowx=i, colx=0).value))
-        month = str(int(worksheet.cell(rowx=i, colx=1).value))
-        if len(month) == 1:
-            month = '0' + month
-        day = str(int(worksheet.cell(rowx=i, colx=2).value))
-        if len(day) == 1:
-            day = '0'+day
-        value = str(worksheet.cell(rowx=i, colx=3).value)
-        n = datetime.date(int(year), int(month), int(day))
-        data.append({'date': n, 'value': value})
-    return data
-
-
-# A variable for predicting 'n' days out into the future
-forecast_out = 1
-
-data = getData()
-
-print(data)
-
-
-def get_date(d):
-    return d['date']
-
-def get_value(d):
-    return d['value']
-
-# plt - x axis
-fig, ax = plt.subplots()
-ax.plot(list(map(get_date, data)), list(map(get_value, data)),
-        color='green', linestyle='--', label='imd')
-ax.scatter(list(map(get_date, data)), list(map(get_value, data)),
-           marker='o', color='green')
-plt.show()"""

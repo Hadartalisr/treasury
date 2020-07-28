@@ -14,9 +14,10 @@ def update_dates(d):
     future_content = get_fed_url_content(today_my_date)
     update_fed_maturities(d, df, future_content)
     update_fed_maturities_future(d, df, future_content)
-    d.set_index('date')
-    df.set_index('date')
-    return pd.concat([d, df], axis=1, sort=False)
+    """df.date = df.date.astype(int)
+    d.date = d.date.astype(int)
+    d = d.merge(df, on="date", how="left")
+    return d"""
 
 
 def load_fed_maturities_df():
@@ -38,7 +39,7 @@ def update_fed_maturities(dates, df, future_content):
     today = datetime.date.today()
     today_my_date = date.get_my_date_from_date(today)
     for i in range(0, len(dates)):
-        cur = dates.loc[i, 'date'].values[0]
+        cur = dates.loc[i, 'date']
         if int(cur) not in df['date'].values:
             if int(cur) <= int(today_my_date):
                 # need to update new values
@@ -52,7 +53,7 @@ def update_fed_maturities_future(dates, df, future_content):
     today = datetime.date.today()
     today_my_date = date.get_my_date_from_date(today)
     for i in range(0, len(dates)):
-        cur = dates.loc[i, 'date'].values[0]
+        cur = dates.loc[i, 'date']
         if int(cur) not in df['date'].values:
             if int(cur) > int(today_my_date):
                 # need to update new values
@@ -65,7 +66,7 @@ def update_fed_maturities_future(dates, df, future_content):
 def get_fed_maturities(d, future_content):
     next_wed = get_next_or_today_wedensday()
     maturities = 0
-    if d <= date.get_my_date_from_date(datetime.date.today()):
+    if d <= int(date.get_my_date_from_date(datetime.date.today())):
         content = get_fed_url_content(d)
     else:
         content = future_content
