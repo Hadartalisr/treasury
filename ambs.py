@@ -8,7 +8,7 @@ import date
 
 
 def dump_mbs_df(df):
-    excel_file = './.idea/fedInvestments.xlsx'
+    excel_file = './.idea/ambs.xlsx'
     df.to_excel(excel_file, index=False)
 
 def search_in_ambs_schedule_html():
@@ -86,14 +86,14 @@ def get_ambs_trade(excel_url):
     return new_df
 
 
-def generate_ambs_json():
+def generate_ambs_excel():
+    obj = {'date': [], 'mbs':[]}
+    df = pd.DataFrame(obj)
     ambs_schedule = search_in_ambs_schedule_html()
-    with open('.idea/ambsData.json', 'r') as f:
-        data = json.load(f)
-        data = json.loads(data)
     for index, month in enumerate(ambs_schedule):
-        if index == 20:
+        if index == 24:  # search in the last 2 years
             break
+        data = list()
         dates = get_ambs_trade(month['link'])
         for d in dates:
             search_result = [x for x in data if x['date'] == d['Contractual_Settlement_Date']]
@@ -101,23 +101,30 @@ def generate_ambs_json():
                 data.append({'date': d['Contractual_Settlement_Date'], 'trade_amount': int(d['Trade_Amount'])})
             else:
                 search_result[0]['trade_amount'] = int(search_result[0]['trade_amount']) + int(d['Trade_Amount'])
-    y = json.dumps(data)
-    with open('.idea/ambsData.json', 'w') as f:
-        json.dump(y, f)
+        for da in data:
+            df.loc[len(df)] = [da['date'], da['trade_amount']]
+    dump_mbs_df(df)
 
 
-def update_dates_ambs(d):
-    if datetime.date.today().day in (11,12,13,14,15,16): # need to fix
-        generate_ambs_json()
-    with open('.idea/ambsData.json', 'r') as f:
-        data = json.load(f)
-        data = json.loads(data)
-    for index, row in d.iterrows():
-        a = row['date'][0]
-        search_result = [x for x in data if a == x['date']]
-        if len(search_result) > 0:
-            row['mbs'] = search_result[0]['trade_amount']
-        else:
-            row['mbs'] = 0
-    return  d
+def load_ambs_df():
 
+
+
+def update_dates(d):
+    if datetime.date.today().day in (11, 12, 13, 14, 15, 16):
+        # need to generate new json (maybe there is new data) // can improve later
+        print("need the check for updates in the ambs data...")
+        generate_ambs_excel()
+        print("finished to update ambs data.")
+    df = load_ambs_df()
+    update_treasury_delta(dates, df)
+    df.date = df.date.astype(int)
+    dates.date = dates.date.astype(int)
+    dates = dates.merge(df, on="date", how="left")
+    dates.date.apply(str)
+    return dates
+
+
+
+
+generate_ambs_excel()

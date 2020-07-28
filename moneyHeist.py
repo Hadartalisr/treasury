@@ -334,47 +334,46 @@ def main(date_range, type):
 
     print(color.GREEN + color.BOLD + '***** start - generate_dates *****' + color.END)
     dates = holidays.generate_dates(date_range)
-    print(dates[:7])
-    print(dates[-7:])
+    print(dates[-20:])
     print(color.PURPLE + color.BOLD + '***** end - generate_dates *****' + color.END)
 
+    length = len(dates)
+
     print(color.GREEN + color.BOLD + '***** start - update_dates_issues_maturities *****' + color.END)
-    #dates =
-    issuesMaturities.update_dates(dates)
-    print(dates[:7])
-    print(dates[-7:])
+    dates = issuesMaturities.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_dates_issues_maturities dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_dates_issues_maturities *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_dates_treasury_delta *****' + color.END)
-    #dates = \
-    treasuryDelta.update_dates(dates)
-    print(dates[:7])
-    print(dates[-7:])
+    dates = treasuryDelta.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_dates_treasury_delta dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_dates_treasury_delta *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_dates_fed_maturities *****' + color.END)
-    #dates = \
-    fedMaturities.update_dates(dates)
-    print(dates[:7])
-    print(dates[-7:])
+    dates = fedMaturities.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_dates_treasury_delta dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_maturities *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_dates_fed_investments *****' + color.END)
-    #dates =
-    fedInvestments.update_dates(dates)
-    #dates.reset_index(inplace=True)
-    print(dates[:7])
-    print(dates[-7:])
+    dates = fedInvestments.update_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_dates_treasury_delta dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_investments *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_dates_ambs *****' + color.END)
-    #dates =
-    ambs.update_dates_ambs(dates)
+    dates = ambs.update_dates(dates)
     print(dates[:7])
     print(dates[-7:])
     print(color.PURPLE + color.BOLD + '***** end - update_dates_ambs *****' + color.END)
-
-
+    """
+    """
     #export_dates_to_excel(dates)
 
     """
@@ -396,10 +395,12 @@ def main(date_range, type):
     update_super_data_mbs_swap(dates)
     print(color.BOLD + 'start - update_super_data_mbs_swap_repo' + color.END)
     update_super_data_mbs_swap_repo(dates)
-    # calculate dates
-    illegal_dates = [x for x in dates if x['is_legal_date'] is False]
-    legal_dates = [x for x in dates if x['is_legal_date'] is True]
-    export_legal_dates_to_excel(legal_dates)
+    """
+    #calculate dates
+    #illegal_dates = [x for x in dates if x['is_legal_date'] is False]
+    #legal_dates = [x for x in dates if x['is_legal_date'] is True]
+    export_dates_to_excel(dates)
+    """
     show_my_plot(legal_dates, type)
     """
 

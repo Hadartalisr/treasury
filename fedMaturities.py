@@ -11,13 +11,15 @@ def update_dates(d):
     df = load_fed_maturities_df()
     today = datetime.date.today()
     today_my_date = date.get_my_date_from_date(today)
+    d.date.apply(str)
     future_content = get_fed_url_content(today_my_date)
     update_fed_maturities(d, df, future_content)
     update_fed_maturities_future(d, df, future_content)
-    """df.date = df.date.astype(int)
+    df.date = df.date.astype(int)
     d.date = d.date.astype(int)
     d = d.merge(df, on="date", how="left")
-    return d"""
+    d.date.apply(str)
+    return d
 
 
 def load_fed_maturities_df():
@@ -64,9 +66,10 @@ def update_fed_maturities_future(dates, df, future_content):
 
 # date in my_date format
 def get_fed_maturities(d, future_content):
+    d = str(d)
     next_wed = get_next_or_today_wedensday()
     maturities = 0
-    if d <= int(date.get_my_date_from_date(datetime.date.today())):
+    if d <= date.get_my_date_from_date(datetime.date.today()):
         content = get_fed_url_content(d)
     else:
         content = future_content
@@ -86,6 +89,7 @@ def get_fed_maturities(d, future_content):
 
 # date in my_date format - return last wed in my_date format
 def get_last_wedensday(d, weeks):
+    d = str(d)
     cur_date = date.add_days_and_get_date(d, weeks*(-7))
     if cur_date.weekday() == 2:
         cur_date = cur_date - datetime.timedelta(days=1)

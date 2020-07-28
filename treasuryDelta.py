@@ -10,10 +10,11 @@ import holidays
 def update_dates(dates):
     df = load_treasury_delta_df()
     update_treasury_delta(dates, df)
-    """ df.date = df.date.astype(int)
+    df.date = df.date.astype(int)
     dates.date = dates.date.astype(int)
     dates = dates.merge(df, on="date", how="left")
-    return dates"""
+    dates.date.apply(str)
+    return dates
 
 
 def load_treasury_delta_df():
@@ -34,8 +35,8 @@ def dump_treasury_delta_df(df):
 def update_treasury_delta(dates, df):
     length = len(dates)
     for i in range(0, length):
-        cur = dates.loc[i, 'date']
-        if cur not in df['date']:
+        cur = int(dates.loc[i, 'date'])
+        if cur not in df['date'].values:
             if int(cur) <= get_last_report_date():
                 treasury_array = get_treasury_delta(str(cur))
                 # need to update new values

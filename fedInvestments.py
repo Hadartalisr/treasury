@@ -13,9 +13,11 @@ def update_dates(d):
     df = load_fed_investments_df()
     update_fed_investments(d, df)
     update_fed_investments_future(d, df)
-    """d.set_index('date')
-    df.set_index('date')
-    return pd.concat([d, df], axis=1, sort=False)"""
+    df.date = df.date.astype(int)
+    d.date = d.date.astype(int)
+    d = d.merge(df, on="date", how="left")
+    d.date.apply(str)
+    return d
 
 
 def load_fed_investments_df():
@@ -35,12 +37,12 @@ def update_fed_investments(dates, df):
     today = datetime.date.today()
     today_my_date = date.get_my_date_from_date(today)
     for i in range(0, len(dates)):
-        cur = dates.loc[i, 'date'].values[0]
-        if int(cur) not in df['date'].values:
+        cur = dates.loc[i, 'date']
+        if cur not in df['date'].values:
             if int(cur) <= int(today_my_date):
                 # need to update new values
                 new_date = cur
-                new_fed_investment = get_fed_acceptance_per_settlement_day(cur)
+                new_fed_investment = get_fed_acceptance_per_settlement_day(str(cur))
                 df.loc[len(df)] = [new_date, new_fed_investment]
                 dump_fed_investments_df(df)
 
@@ -49,7 +51,7 @@ def update_fed_investments_future(dates, df):
     today = datetime.date.today()
     today_my_date = date.get_my_date_from_date(today)
     for i in range(0, len(dates)):
-        cur = dates.loc[i, 'date'].values[0]
+        cur = dates.loc[i, 'date']
         if int(cur) not in df['date'].values:
             if int(cur) > int(today_my_date):
                 # need to update new values
@@ -118,7 +120,7 @@ def get_fed_url_content(excel_date):
 
 # date in my_date format
 def get_fed_acceptance_url(d):
-    week_before_date = date.get_my_date_from_date(date.add_days_and_get_date(d, -7))
+    week_before_date = date.get_my_date_from_date(date.add_days_and_get_date(d, -10))
     day_before = date.get_day_from_my_date(week_before_date)
     month_before = date.get_month_from_my_date(week_before_date)
     year_before = date.get_year_from_my_date(week_before_date)
@@ -150,9 +152,9 @@ def get_past_fed_investments(d):
         df = df[['Settlement_Date', 'Accepted']]
         df = df.groupby('Settlement_Date').sum().reset_index()
         df['Settlement_Date'] = df['Settlement_Date'].apply(lambda row: date.get_my_date_from_date(row))
-        accepted = df[df['Settlement_Date'] == d]
-        if len(accepted) > 0:
-            accepted = df.iloc[0]['Accepted']
+        search_result = df[df['Settlement_Date'] == d]
+        if len(search_result) > 0:
+            accepted = search_result.iloc[0]['Accepted']
         else:
             accepted = 0
     except Exception as ex:
@@ -186,6 +188,6 @@ def get_fed_acceptance_per_settlement_day(d):
 
 
 
-
+print(get_fed_acceptance_url("20071000"))
 
 

@@ -9,10 +9,11 @@ import datetime
 def update_dates(dates):
     df = load_issues_maturities_df()
     update_issues_maturities(dates, df)
-    """df.date = df.date.astype(int)
+    df.date = df.date.astype(int)
     dates.date = dates.date.astype(int)
     dates = dates.merge(df, on="date", how="left")
-    return dates"""
+    dates.date = dates.date.astype(int)
+    return dates
 
 
 def load_issues_maturities_df():
