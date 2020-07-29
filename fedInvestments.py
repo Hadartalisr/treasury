@@ -186,5 +186,3 @@ def get_fed_acceptance_per_settlement_day(d):
     return acceptance
 
 
-get_fed_acceptance_per_settlement_day("20080500")
-
