@@ -2,9 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="05856821-27c3-4792-a801-e411e0a0cf16" name="Default Changelist" comment="">
+<<<<<<< Updated upstream
       <change beforePath="$PROJECT_DIR$/.idea/treasuryDelta.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/treasuryDelta.xlsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/fedInvestments.py" beforeDir="false" afterPath="$PROJECT_DIR$/fedInvestments.py" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/.idea/fed_maturities.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/fed_soma.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/treasuryDelta.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/treasuryDelta.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fedInvestments.py" beforeDir="false" afterPath="$PROJECT_DIR$/fedInvestments.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fedMaturities.py" beforeDir="false" afterPath="$PROJECT_DIR$/fedSoma.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/moneyHeist.py" beforeDir="false" afterPath="$PROJECT_DIR$/moneyHeist.py" afterDir="false" />
+>>>>>>> Stashed changes
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,7 +52,7 @@
       <recent name="C:\Users\hadar\IdeaProjects\.idea" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.moneyHeist (1)">
+  <component name="RunManager" selected="Python.fedInvestments">
     <configuration name="ambs" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="IdeaProjects" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -86,7 +95,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="fedMaturities" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="fedSoma" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="IdeaProjects" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -98,7 +107,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/fedMaturities.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\hadar\IdeaProjects\fedSoma.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -151,11 +160,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.fedInvestments" />
         <item itemvalue="Python.moneyHeist (1)" />
         <item itemvalue="Python.ambs" />
         <item itemvalue="Python.swap" />
-        <item itemvalue="Python.fedInvestments" />
-        <item itemvalue="Python.fedMaturities" />
+        <item itemvalue="Python.fedSoma" />
       </list>
     </recent_temporary>
   </component>
@@ -185,6 +194,7 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="440" height="466" key="DebuggerActiveHint/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595838034761" />
+<<<<<<< Updated upstream
     <state width="1877" height="327" key="GridCell.Tab.0.bottom" timestamp="1596004707508">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
@@ -207,27 +217,51 @@
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
     <state width="1877" height="327" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1596004707508" />
+=======
+    <state width="1877" height="327" key="GridCell.Tab.0.bottom" timestamp="1596004062370">
+      <screen x="0" y="0" width="1920" height="1050" />
+    </state>
+    <state width="1877" height="327" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1596004062370" />
+    <state width="1877" height="212" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
+    <state width="1877" height="474" key="GridCell.Tab.0.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595941014149" />
+    <state width="1877" height="327" key="GridCell.Tab.0.center" timestamp="1596004062370">
+      <screen x="0" y="0" width="1920" height="1050" />
+    </state>
+    <state width="1877" height="327" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1596004062370" />
+    <state width="1877" height="212" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
+    <state width="1877" height="474" key="GridCell.Tab.0.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595941014149" />
+    <state width="1877" height="327" key="GridCell.Tab.0.left" timestamp="1596004062369">
+      <screen x="0" y="0" width="1920" height="1050" />
+    </state>
+    <state width="1877" height="327" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1596004062369" />
+    <state width="1877" height="212" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
+    <state width="1877" height="474" key="GridCell.Tab.0.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595941014149" />
+    <state width="1877" height="327" key="GridCell.Tab.0.right" timestamp="1596004062370">
+      <screen x="0" y="0" width="1920" height="1050" />
+    </state>
+    <state width="1877" height="327" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1596004062370" />
+>>>>>>> Stashed changes
     <state width="1877" height="212" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@-1920.0.1920.1050" timestamp="1595006031265" />
     <state width="1877" height="474" key="GridCell.Tab.0.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595941014149" />
-    <state width="1877" height="238" key="GridCell.Tab.1.bottom" timestamp="1595957244743">
+    <state width="1877" height="467" key="GridCell.Tab.1.bottom" timestamp="1595993191671">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="238" key="GridCell.Tab.1.bottom/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1595957244743" />
+    <state width="1877" height="467" key="GridCell.Tab.1.bottom/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1595993191671" />
     <state width="1877" height="508" key="GridCell.Tab.1.bottom/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595861495334" />
-    <state width="1877" height="238" key="GridCell.Tab.1.center" timestamp="1595957244743">
+    <state width="1877" height="467" key="GridCell.Tab.1.center" timestamp="1595993191670">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="238" key="GridCell.Tab.1.center/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1595957244743" />
+    <state width="1877" height="467" key="GridCell.Tab.1.center/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1595993191670" />
     <state width="1877" height="508" key="GridCell.Tab.1.center/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595861495334" />
-    <state width="1877" height="238" key="GridCell.Tab.1.left" timestamp="1595957244743">
+    <state width="1877" height="467" key="GridCell.Tab.1.left" timestamp="1595993191670">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="238" key="GridCell.Tab.1.left/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1595957244743" />
+    <state width="1877" height="467" key="GridCell.Tab.1.left/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1595993191670" />
     <state width="1877" height="508" key="GridCell.Tab.1.left/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595861495334" />
-    <state width="1877" height="238" key="GridCell.Tab.1.right" timestamp="1595957244743">
+    <state width="1877" height="467" key="GridCell.Tab.1.right" timestamp="1595993191671">
       <screen x="0" y="0" width="1920" height="1050" />
     </state>
-    <state width="1877" height="238" key="GridCell.Tab.1.right/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1595957244743" />
+    <state width="1877" height="467" key="GridCell.Tab.1.right/0.0.1920.1050/-1920.0.1920.1050/1920.0.1920.1050@0.0.1920.1050" timestamp="1595993191671" />
     <state width="1877" height="508" key="GridCell.Tab.1.right/0.0.1920.1050/-1920.0.1920.1050@0.0.1920.1050" timestamp="1595861495334" />
     <state width="965" height="533" key="XDebugger.FullValuePopup" timestamp="1595951393235">
       <screen x="0" y="0" width="1920" height="1050" />
@@ -270,6 +304,11 @@
           <url>file://$PROJECT_DIR$/stocks.py</url>
           <line>56</line>
           <option name="timeStamp" value="195" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/moneyHeist.py</url>
+          <line>31</line>
+          <option name="timeStamp" value="197" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

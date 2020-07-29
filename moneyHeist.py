@@ -11,59 +11,51 @@ import re
 from UI import show_my_plot
 import stocks
 import date
-
 import holidays
 import issuesMaturities
 import treasuryDelta
-import fedMaturities
+import fedSoma
 import fedInvestments
 import ambs
 import swap
 
 
 
-
-def update_super_data(d):
-    for da in d:
-        issues = int(da['total_issues'])
-        maturities = int(da['total_maturities'])
-        fed = int(da['fed'])
-        fed_acceptance = int(da['fed_acceptance'])
-        if "issues_after_past_fed" in da:
-            issues = da['issues_after_past_fed']
+def update_data_issues_maturity_fedmat_fedinv(d):
+    d['issues_after_past_fed_soma'] = 0
+    d['issues_maturity_fedsoma_fedinv'] = 0
+    for index, row in d.iterrows():
+        total_issues = int(d.at[index, 'total_issues'])
+        total_maturities = int(d.at[index, 'total_maturities'])
+        fed_soma = int(d.at[index, 'fed_soma'])
+        fed_investments = int(d.at[index, 'fed_investments'])
+        if d.at[index, 'issues_after_past_fed_soma'] != 0:
+            total_issues = d.at[index, 'issues_after_past_fed']
+        if fed_soma == 0:
+            d.at[index, 'issues_maturity_fedsoma_fedinv'] = total_issues-total_maturities-fed_investments
         else:
-            super_data = 0
-        if fed == 0:
-            da['super_data'] = issues-maturities-fed_acceptance
-        else:
-            cur_date = da
-            while fed > 0: # still need to give back money to treasury
-                if issues > 0: # the debt is being returned to the treasury
-                    issue_sub_fed = issues - fed
+            while fed_soma > 0:  # still need to give back money to treasury
+                if total_issues > 0:  # the debt is being returned to the treasury
+                    issue_sub_fed = total_issues - fed_soma
                     if issue_sub_fed <= 0: # the fed gives the treasury all the issues it wants
-                        cur_date['issues_after_past_fed'] = 0
-                        fed = fed - issues
-                        cur_date['super_data'] = -maturities-fed_acceptance
+                        d.at[index, 'issues_after_past_fed_soma'] = 0
+                        fed_soma = fed_soma - total_issues
+                        d.at[index, 'issues_maturity_fedsoma_fedinv'] = -total_maturities-fed_investments
                     else:
-                        cur_date['issues_after_past_fed'] = issue_sub_fed
-                        fed = 0
-                        cur_date['super_data'] = issue_sub_fed-maturities-fed_acceptance
+                        d.at[index, 'issues_after_past_fed_soma'] = issue_sub_fed
+                        fed_soma = 0
+                        d.at[index, 'issues_maturity_fedsoma_fedinv'] = issue_sub_fed-total_maturities-fed_investments
                 else:
-                    cur_date['super_data'] = -maturities-fed_acceptance
-                if fed > 0: # need to update cur_date
-                    tomorrow = date.add_days_and_get_date(cur_date['date'], 1)
-                    tomorrow = date.get_my_date_from_date(tomorrow)
-                    search_result = [x for x in d if x['date'] == tomorrow]
-                    if len(search_result) > 0:
-                        cur_date = search_result[0]
-                        issues = int(cur_date['total_issues'])
-                        maturities = int(cur_date['total_maturities'])
-                        if "issues_after_past_fed" in da:
-                            issues = da['issues_after_past_fed']
-                    else:
-                        print('Error in super_data tomorrow')
-                        print(cur_date)
-                        break
+                    d.at[index, 'issues_maturity_fedsoma_fedinv'] = -total_maturities-fed_investments
+                if fed_soma > 0:  # need to update cur_date
+                    if index == len(d):
+                        raise Exception("could not add the correct issues_maturity_fedsoma_fedinv to the last date.")
+                    index += 1
+                    total_issues = d.at[index, 'total_issues']
+                    total_maturities = d.at[index, 'total_maturities']
+                    if d.at[index, 'issues_after_past_fed_soma'] != 0:
+                        total_issues = d.at[index, 'issues_after_past_fed_soma']
+    return d
 
 
 # super data sub mbs
@@ -93,7 +85,7 @@ def update_super_data_mbs_swap_repo(d):
 
 def export_dates_to_excel(d):
     df = pd.DataFrame(d)
-    filepath = './.idea/legal_dates.xlsx'
+    filepath = '.idea/output.xlsx'
     df.to_excel(filepath, index=False)
 
 # snp_data = []
@@ -140,12 +132,12 @@ def main(date_range, type):
         raise Exception("update_dates_treasury_delta dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_dates_treasury_delta *****' + color.END)
 
-    print(color.GREEN + color.BOLD + '***** start - update_dates_fed_maturities *****' + color.END)
-    dates = fedMaturities.update_dates(dates)
+    print(color.GREEN + color.BOLD + '***** start - update_dates_fed_soma *****' + color.END)
+    dates = fedSoma.update_dates(dates)
     print(dates[-20:])
     if len(dates) > length:
-        raise Exception("update_dates_fed_maturities dates length was extended")
-    print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_maturities *****' + color.END)
+        raise Exception("update_dates_fed_soma dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_dates_fed_soma *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_dates_fed_investments *****' + color.END)
     dates = fedInvestments.update_dates(dates)
@@ -175,6 +167,12 @@ def main(date_range, type):
         raise Exception("update_stocks dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_stocks *****' + color.END)
 
+    print(color.GREEN + color.BOLD + '***** start - update_super_data_issues_maturity_fedmat_fedinv *****' + color.END)
+    dates = update_data_issues_maturity_fedmat_fedinv(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_stocks dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedmat_fedinv *****' + color.END)
 
 
     """

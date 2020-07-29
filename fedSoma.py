@@ -8,13 +8,13 @@ import xlrd
 
 
 def update_dates(d):
-    df = load_fed_maturities_df()
+    df = load_fed_soma_df()
     today = datetime.date.today()
     today_my_date = date.get_my_date_from_date(today)
     d.date.apply(str)
     future_content = get_fed_url_content(today_my_date)
-    update_fed_maturities(d, df, future_content)
-    update_fed_maturities_future(d, df, future_content)
+    update_fed_soma(d, df, future_content)
+    update_fed_soma_future(d, df, future_content)
     df.date = df.date.astype(int)
     d.date = d.date.astype(int)
     d = d.merge(df, on="date", how="left")
@@ -22,22 +22,22 @@ def update_dates(d):
     return d
 
 
-def load_fed_maturities_df():
+def load_fed_soma_df():
     today = int(date.get_my_date_from_date(datetime.date.today()))
-    excel_file = './.idea/fed_maturities.xlsx'
+    excel_file = '.idea/fed_soma.xlsx'
     data = pd.read_excel(excel_file)
     df = pd.DataFrame(data)
     df = df[df['date'] < today]
     return df
 
 
-def dump_issues_maturities_df(df):
-    excel_file = './.idea/fed_maturities.xlsx'
+def dump_fed_soma_df(df):
+    excel_file = '.idea/fed_soma.xlsx'
     df.to_excel(excel_file, index=False)
 
 
 # update the past dates ... updater the dumping i add the new dates
-def update_fed_maturities(dates, df, future_content):
+def update_fed_soma(dates, df, future_content):
     today = datetime.date.today()
     today_my_date = date.get_my_date_from_date(today)
     for i in range(0, len(dates)):
@@ -46,12 +46,12 @@ def update_fed_maturities(dates, df, future_content):
             if int(cur) <= int(today_my_date):
                 # need to update new values
                 new_date = cur
-                new_fed_maturities = get_fed_maturities(cur, future_content)
-                df.loc[len(df)] = [new_date, new_fed_maturities]
-                dump_issues_maturities_df(df)
+                new_fed_soma = get_fed_soma(cur, future_content)
+                df.loc[len(df)] = [new_date, new_fed_soma]
+                dump_fed_soma_df(df)
 
 
-def update_fed_maturities_future(dates, df, future_content):
+def update_fed_soma_future(dates, df, future_content):
     today = datetime.date.today()
     today_my_date = date.get_my_date_from_date(today)
     for i in range(0, len(dates)):
@@ -60,12 +60,12 @@ def update_fed_maturities_future(dates, df, future_content):
             if int(cur) > int(today_my_date):
                 # need to update new values
                 new_date = cur
-                new_fed_maturities = get_fed_maturities(cur, future_content)
-                df.loc[len(df)] = [new_date, new_fed_maturities]
+                new_fed_soma = get_fed_soma(cur, future_content)
+                df.loc[len(df)] = [new_date, new_fed_soma]
 
 
 # date in my_date format
-def get_fed_maturities(d, future_content):
+def get_fed_soma(d, future_content):
     d = str(d)
     next_wed = get_next_or_today_wedensday()
     maturities = 0

@@ -179,10 +179,9 @@ def get_fed_acceptance_per_settlement_day(d):
         cr = csv.reader(decoded_content.splitlines(), delimiter=',')
         my_list = list(cr)
         for row in my_list:
-            if row[2] == str(cur_date.month)+'/'+str(cur_date.day)+'/'+str(cur_date.year):
+            if row[0] == str(cur_date.month)+'/'+str(cur_date.day)+'/'+str(cur_date.year):
                 acceptance = acceptance + int(float(re.findall('\d+\.\d+', row[6])[0])*1000000000)
     else:
         acceptance = 0
     return acceptance
-
 
