@@ -85,6 +85,14 @@ def update_super_data_mbs_swap_repo(d):
         date['super_data_mbs_swap_repo'] = int(super_data_mbs_swap) - int(repo_delta)
 
 
+def validateDates(d):
+    for index, row in d.iterrows():
+        if d.at[index, 'is_legal_date']:
+            if d.at[index, 'issues_maturity_fedsoma_fedinv_mbs_swap'] == 0:
+                raise Exception(str(d.at[index, date]) + " is a legal day without super data")
+        else:
+            if d.at[index, 'issues_maturity_fedsoma_fedinv_mbs_swap'] != 0:
+                raise Exception(str(d.at[index, date]) + " is not a legal day but had super data")
 
 
 
@@ -197,13 +205,28 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedsoma_fedinv_mbs_swap *****' +
           color.END)
 
-    export_dates_to_excel(dates)
 
-    #calculate dates
-    #illegal_dates = [x for x in dates if x['is_legal_date'] is False]
-    #legal_dates = [x for x in dates if x['is_legal_date'] is True]
+    print(color.GREEN + color.BOLD + '***** start - validateDates *****' +
+          color.END)
+    validateDates(dates)
+    print(color.BLUE + 'The dates are valid!' + color.END)
+    print(color.PURPLE + color.BOLD + '***** end - validateDates *****' +
+          color.END)
 
-    # show_my_plot(legal_dates, type)
+    print(color.GREEN + color.BOLD + '***** start - export_legal_dates_to_excel *****' +
+          color.END)
+    legal_dates = dates[dates['is_legal_date']]
+    print(color.BLUE + 'The legal dates :' + color.END)
+    print(legal_dates[-20:])
+    export_dates_to_excel(legal_dates)
+    print(color.PURPLE + color.BOLD + '***** end - export_legal_dates_to_excel *****' +
+          color.END)
+
+
+    show_my_plot(legal_dates, type)
+
+
+    print(color.BLUE + 'Thank you!' + color.END)
 
 
 
@@ -212,9 +235,7 @@ def main(date_range, type):
 
 
 
-
-
-dr = ['09', '07', '2020', '25', '07', '2020']
+dr = ['01', '07', '2020', '25', '07', '2020']
 main(dr, 0)
 
 

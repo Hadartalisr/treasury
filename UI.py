@@ -54,19 +54,18 @@ def format_date(x, pos=None):
 """
 
 class MyFormatter(ticker.Formatter):
-    def __init__(self, dates):
-        self.dates = dates
+    def __init__(self, df):
+        self.df = df
 
     def __call__(self, x, pos=0):
         ind = int(x)
-        if ind >= len(self.dates) or ind < 0:
+        if ind >= len(self.df) or ind < 0:
             return ''
-        return self.dates[ind]['date']
+        return self.df.at[ind, 'date']
 
 
 def update_my_date_to_date(d):
-    for index in range(0, len(d)):
-        d[index]['date'] = get_date_from_my_date(d[index]['date'])
+    return get_date_from_my_date(str(d))
 
 
 
@@ -195,139 +194,18 @@ def get_total_maturities(d):
 
 
 
-def show_my_plot(dates, type):
-    print('UI !!!')
-    dates = np.array(dates)
-    update_my_date_to_date(dates)
-
+def show_my_plot(df, type):
+    df.reset_index(inplace=True)
+    for index, row in df.iterrows():
+        row['date'] = update_my_date_to_date(row['date'])
+    dates = df[['date']]
     print(dates)
     formatter = MyFormatter(dates)
-    length = len(dates)
-
-    """
-    fed_dates = get_dates_with_fed_gtz(dates)
-    issues_dates = get_dates_with_issues_gtz(dates)
-    maturities_dates = get_dates_with_maturities_gtz(dates)
-    fed_acceptance_dates = get_dates_with_fed_acceptance_gtz(dates)
-    mbs_dates = get_dates_with_mbs_acceptance_gtz(dates)
-    swap_dates = get_dates_with_swap_neqz(dates)"""
 
     fig, ax = plt.subplots()
-    ind = np.arange(length)  # the evenly spaced plot indices
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
-    ax.axhline(y=0, color='black', linestyle='-')
 
-    if type == 0:
-        # x - axe line
-        ax.axhline(y=0, color='black', linestyle='-')
-
-        # plt - treasury_delta
-        plt.plot(ind, list(map(get_treasury_delta_from_obj, dates)), color='#fe5722',
-                 linestyle='-', label='לעופב רצואה שרפה')
-        for i in range(0, length):
-            treasury_delta = get_treasury_delta_from_obj(dates[i])
-            plt.annotate(treasury_delta, (i, treasury_delta), color='#fe5722')
-
-        # plt - issues + maturities + imd
-        ax.scatter(ind, list(map(get_total_issues, dates)), marker='^', color='#b8f5ba', label='רצואה לש תוקפנה')
-        ax.scatter(ind, list(map(get_total_maturities, dates)), marker='v', color='#f5b8b8', label='רצואה לש תונוערפ')
-        ax.plot(ind, list(map(get_imd, dates)), color='#fe9800', linestyle='--', label='רצואה תונוערפל רצואה תוקפנה ןיב שרפה')
-        for i in range(0, length):
-            imd = int(get_imd(dates[i]))
-            ax.annotate(str(imd), (i, imd), color='#fe9800')
-
-        """
-        # when there is no correlation
-        plt.fill_between(list(map(get_axis_date, legal_dates)),list(map(get_imd_treasury_delta, legal_dates)),
-                         color='red', alpha=0.15)
-        """
-        # plt - fed
-        ax.scatter(ind, list(map(get_fed, dates)),color='#cddc39', marker='^', label='דפה לש בוח לוגלג')
-        for i in range(0, length):
-            fed_ma = int(get_fed(dates[i]))
-            ax.annotate(str(fed_ma), (i, fed_ma), color='#cddc39')
-
-        #plt - fed_acceptance
-        ax.scatter(ind, list(map(get_fed_acceptance, dates)), color='#029688', marker='H', label='דפה לש תועקשה')
-        for i in range(0, length):
-            fed_acc = int(get_fed_acceptance(dates[i]))
-            ax.annotate(str(fed_acc), (i, fed_acc), color='#029688')
-
-        #plt - mbs
-        ax.scatter(ind, list(map(get_mbs, dates)), color='#e91d64', marker='H', label='תואתנכשמ הבוגמ ח"גא')
-        for i in range(0, length):
-            mbs = int(get_mbs(dates[i]))
-            ax.annotate(str(mbs), (i, mbs), color='#e91d64')
-
-
-        # plt - swap
-        ax.scatter(ind, list(map(get_swap, dates)), color='#4cb050', marker='*', label='יארשא יוניש')
-        for i in range(0, length):
-            swap = int(get_swap(dates[i]))
-            ax.annotate(str(swap), (i, swap), color='#4cb050')
-
-        # plt - repo
-        ax.scatter(ind, list(map(get_repo_delta, dates)), color='#ad3751', marker="s", label='ופיר שרפה')
-        for i in range(0, length):
-            repo_delta = int(get_repo_delta(dates[i]))
-            ax.annotate(str(repo_delta), (i, repo_delta), color='#ad3751')
-
-        # plt - SUPER DATA
-        ax.plot(ind, list(map(get_super_data, dates)), color='grey', label='super_data')
-
-        # plt - SUPER DATA MBS
-        ax.plot(ind, list(map(get_super_data_mbs, dates)), color='#00ff00', label='super_data_mbs')
-
-        # plt - SUPER DATA MBS SWAP
-        ax.plot(ind, list(map(get_super_data_mbs_swap, dates)), color='#ff0000', label='super_data_mbs_swap')
-
-        # plt - SUPER DATA MBS SWAP REPO
-        ax.plot(ind, list(map(get_super_data_mbs_swap_repo, dates)), color='#ff004f', label='super_data_mbs_swap_repo')
-
-    elif type == 1:
-
-        for i in range(0, length):
-            minus_super_data_mbs_swap_repo = int(get_minus_super_data_mbs_swap(dates[i]))
-            ax.annotate(str(minus_super_data_mbs_swap_repo), (i, minus_super_data_mbs_swap_repo), color='#ff004f')
-        ax.scatter(ind, list(map(get_minus_super_data_mbs_swap, dates)), color='#ff004f',
-                   label='before repo')
-
-        #plt - usoil
-        ax.plot(ind, list(map(get_dxy, dates)), color='#75002d', label='tsla')
-
-
-        """
-        # plt - !!!! MINUS !!! SUPER DATA MBS SWAP
-        ax.plot(ind, list(map(get_minus_super_data_mbs, dates)), color='#ff004f', label='minus_super_data_mbs')
-
-        #plt - djia
-        ax.plot(ind, list(map(get_djia, dates)), color='#75002d', label='Dow Jones Industrial Average')
-
-        #plt gspc
-        ax.plot(ind, list(map(get_gspc, dates)), color='#670075', label='S&P 500')
-        """
-    elif type == 2:
-
-        # plt - repo
-        ax.plot(ind, list(map(get_repo_delta, dates)), color='#ad3751', label='ופיר שרפה')
-        for i in range(0, length):
-            repo_delta = int(get_repo_delta(dates[i]))
-            ax.annotate(str(repo_delta), (i, repo_delta), color='#ad3751')
-
-        for i in range(0, length):
-            super_data_mbs = int(get_super_data_mbs_swap(dates[i]))
-            ax.annotate(str(super_data_mbs), (i, super_data_mbs), color='black')
-        ax.scatter(ind, list(map(get_super_data_mbs_swap, dates)), color='black',
-                   label='before repo')
-
-        for i in range(0, length):
-            super_data_mbs = int(get_super_data_mbs_swap_repo(dates[i]))
-            ax.annotate(str(super_data_mbs), (i, super_data_mbs), color='#ff004f')
-        ax.scatter(ind, list(map(get_super_data_mbs_swap_repo, dates)), color='#ff004f',
-                   label='after repo')
-
-
-
+    df['treasury_delta'].plot()
     plt.grid(True)
     plt.legend()
     plt.show()
