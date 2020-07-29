@@ -1,4 +1,6 @@
 import json
+import math
+
 import numpy as np
 import pandas as pd
 from pandas import ExcelWriter
@@ -21,7 +23,7 @@ import swap
 
 
 
-def update_data_issues_maturity_fedmat_fedinv(d):
+def update_data_issues_maturity_fedsoma_fedinv(d):
     d['issues_after_past_fed_soma'] = 0
     d['issues_maturity_fedsoma_fedinv'] = 0
     for index, row in d.iterrows():
@@ -58,19 +60,22 @@ def update_data_issues_maturity_fedmat_fedinv(d):
     return d
 
 
-# super data sub mbs
-def update_super_data_mbs(d):
-    for date in d:
-        super_data = date['super_data']
-        mbs = date['mbs']
-        date['super_data_mbs'] = int(super_data) - int(mbs)
+def update_data_issues_maturity_fedsoma_fedinv_mbs(d):
+    d['issues_maturity_fedsoma_fedinv_mbs'] = d['issues_maturity_fedsoma_fedinv']
+    for index, row in d.iterrows():
+        mbs = d.at[index, 'mbs']
+        if not math.isnan(mbs):
+            d.at[index, 'issues_maturity_fedsoma_fedinv_mbs'] -= mbs
+    return d
 
 
-def update_super_data_mbs_swap(d):
-    for date in d:
-        super_data_mbs = date['super_data_mbs']
-        swap = date['swap']
-        date['super_data_mbs_swap'] = int(super_data_mbs) - int(swap)
+def update_data_issues_maturity_fedsoma_fedinv_mbs_swap(d):
+    d['issues_maturity_fedsoma_fedinv_mbs_swap'] = d['issues_maturity_fedsoma_fedinv_mbs']
+    for index, row in d.iterrows():
+        swap = d.at[index, 'swap_delta']
+        if not math.isnan(swap):
+            d.at[index, 'issues_maturity_fedsoma_fedinv_mbs_swap'] -= swap
+    return d
 
 
 def update_super_data_mbs_swap_repo(d):
@@ -167,12 +172,31 @@ def main(date_range, type):
         raise Exception("update_stocks dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_stocks *****' + color.END)
 
-    print(color.GREEN + color.BOLD + '***** start - update_super_data_issues_maturity_fedmat_fedinv *****' + color.END)
-    dates = update_data_issues_maturity_fedmat_fedinv(dates)
+    print(color.GREEN + color.BOLD + '***** start - update_super_data_issues_maturity_fedsoma_fedinv *****' + color.END)
+    dates = update_data_issues_maturity_fedsoma_fedinv(dates)
     print(dates[-20:])
     if len(dates) > length:
-        raise Exception("update_stocks dates length was extended")
-    print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedmat_fedinv *****' + color.END)
+        raise Exception("update_super_data_issues_maturity_fedsoma_fedinv dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedsoma_fedinv *****' + color.END)
+
+    print(color.GREEN + color.BOLD + '***** start - update_super_data_issues_maturity_fedsoma_fedinv_mbs *****' +
+          color.END)
+    dates = update_data_issues_maturity_fedsoma_fedinv_mbs(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_super_data_issues_maturity_fedsoma_fedinv_mbs dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedsoma_fedinv_mbs *****'
+          + color.END)
+
+    print(color.GREEN + color.BOLD + '***** start - update_super_data_issues_maturity_fedsoma_fedinv_mbs_swap *****' +
+          color.END)
+    dates = update_data_issues_maturity_fedsoma_fedinv_mbs_swap(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_super_data_issues_maturity_fedsoma_fedinv_mbs_swap dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedsoma_fedinv_mbs_swap *****' +
+          color.END)
+
 
 
     """

@@ -17,7 +17,7 @@ def get_swap_delta_df():
     df = df.set_index('Date').diff().reset_index()
     df['Date'] = df.apply(lambda row : date.get_my_date_from_date(row['Date'] + datetime.timedelta(days=1)), axis=1)
     df = df.iloc[1:]
-    df['Total_Amount_Outstanding'] = df.apply(lambda row: int(row['Total_Amount_Outstanding'])*-1, axis=1)
+    df['Total_Amount_Outstanding'] = df.apply(lambda row: int(row['Total_Amount_Outstanding'])*-1000000, axis=1)
     df.columns = [c.replace('Date', 'date') for c in df.columns]
     df.columns = [c.replace('Total_Amount_Outstanding', 'swap_delta') for c in df.columns]
     return df

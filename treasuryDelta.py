@@ -65,6 +65,8 @@ def get_treasury_delta(d):
         worksheet = workbook.sheet_by_index(0)
         open = worksheet.cell_value(rowx=6, colx=3)
         close = worksheet.cell_value(rowx=6, colx=2)
+        open = int(open)*1000000
+        close = int(close)*1000000
     except Exception as ex:
         open = close = 0
         new_date = date.get_date_from_my_date(d)
