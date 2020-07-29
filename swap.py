@@ -15,7 +15,11 @@ def get_swap_delta_df():
     df.columns = [c.replace(' ', '_') for c in df.columns]
     df = df[['Date', 'Total_Amount_Outstanding']]
     df = df.set_index('Date').diff().reset_index()
-    df['Date'] = df.apply(lambda row : date.get_my_date_from_date(row['Date'] + datetime.timedelta(days=1)), axis=1)
+    length = len(df)-1
+    for index, row in df.iterrows():
+        if index != length:
+            df.at[index, 'Total_Amount_Outstanding'] = df.at[index+1, 'Total_Amount_Outstanding']
+    df['Date'] = df.apply(lambda row : date.get_my_date_from_date(row['Date']), axis=1)
     df = df.iloc[1:]
     df['Total_Amount_Outstanding'] = df.apply(lambda row: int(row['Total_Amount_Outstanding'])*-1000000, axis=1)
     df.columns = [c.replace('Date', 'date') for c in df.columns]
@@ -30,4 +34,5 @@ def update_dates(d):
     d = d.merge(df, on="date", how="left")
     d.date.apply(str)
     return d
+
 

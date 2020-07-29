@@ -197,30 +197,14 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedsoma_fedinv_mbs_swap *****' +
           color.END)
 
+    export_dates_to_excel(dates)
 
-
-    """
-
-    print(color.BOLD + 'start - update_stocks' + color.END)
-    update_stocks(dates)
-    print(color.BOLD + 'start - update_repo_delta' + color.END)
-    update_repo_delta(dates)
-    print(color.BOLD + 'start - update_super_data' + color.END)
-    update_super_data(dates)
-    print(color.BOLD + 'start - update_super_data_mbs' + color.END)
-    update_super_data_mbs(dates)
-    print(color.BOLD + 'start - update_super_data_mbs_swap' + color.END)
-    update_super_data_mbs_swap(dates)
-    print(color.BOLD + 'start - update_super_data_mbs_swap_repo' + color.END)
-    update_super_data_mbs_swap_repo(dates)
-    """
     #calculate dates
     #illegal_dates = [x for x in dates if x['is_legal_date'] is False]
     #legal_dates = [x for x in dates if x['is_legal_date'] is True]
-    export_dates_to_excel(dates)
-    """
-    show_my_plot(legal_dates, type)
-    """
+
+    # show_my_plot(legal_dates, type)
+
 
 
 
