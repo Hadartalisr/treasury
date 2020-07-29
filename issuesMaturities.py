@@ -12,6 +12,23 @@ def update_dates(dates):
     df.date = df.date.astype(int)
     dates.date = dates.date.astype(int)
     dates = dates.merge(df, on="date", how="left")
+    for index, row in dates.iterrows():
+        if not dates.at[index, 'is_legal_date']:
+            if not dates.at[index, 'total_issues'] == 0:
+                issues = dates.at[index, 'total_issues']
+                dates.at[index, 'total_issues'] = 0
+                i = index
+                while not dates.at[i, 'is_legal_date']:
+                    i += 1
+                dates.at[i, 'total_issues'] += issues
+            if not dates.at[index, 'total_maturities'] == 0:
+                maturities = dates.at[index, 'total_maturities']
+                dates.at[index, 'total_maturities'] = 0
+                i = index
+                while not dates.at[i, 'is_legal_date']:
+                    i += 1
+                dates.at[i, 'total_maturities'] += maturities
+    dates['total_issues_sub_total_maturities'] = dates['total_issues'] - dates['total_maturities']
     dates.date = dates.date.astype(int)
     return dates
 
@@ -39,8 +56,7 @@ def update_issues_maturities(dates, df):
             new_date = cur
             new_total_issues = get_issues_for_date(str(cur))
             new_total_maturities = get_maturities_for_date(str(cur))
-            new_total_issues_sub_total_maturities = new_total_issues - new_total_maturities
-            df.loc[len(df)] = [new_date, new_total_issues, new_total_maturities, new_total_issues_sub_total_maturities]
+            df.loc[len(df)] = [new_date, new_total_issues, new_total_maturities]
             dump_issues_maturities_df(df)
 
 

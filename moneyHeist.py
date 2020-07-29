@@ -32,7 +32,7 @@ def update_data_issues_maturity_fedsoma_fedinv(d):
         fed_soma = int(d.at[index, 'fed_soma'])
         fed_investments = int(d.at[index, 'fed_investments'])
         if d.at[index, 'issues_after_past_fed_soma'] != 0:
-            total_issues = d.at[index, 'issues_after_past_fed']
+            total_issues = d.at[index, 'issues_after_past_fed_soma']
         if fed_soma == 0:
             d.at[index, 'issues_maturity_fedsoma_fedinv'] = total_issues-total_maturities-fed_investments
         else:
@@ -87,10 +87,7 @@ def update_super_data_mbs_swap_repo(d):
 
 def validateDates(d):
     for index, row in d.iterrows():
-        if d.at[index, 'is_legal_date']:
-            if d.at[index, 'issues_maturity_fedsoma_fedinv_mbs_swap'] == 0:
-                raise Exception(str(d.at[index, date]) + " is a legal day without super data")
-        else:
+        if not d.at[index, 'is_legal_date']:
             if d.at[index, 'issues_maturity_fedsoma_fedinv_mbs_swap'] != 0:
                 raise Exception(str(d.at[index, date]) + " is not a legal day but had super data")
 
@@ -213,29 +210,20 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - validateDates *****' +
           color.END)
 
-    print(color.GREEN + color.BOLD + '***** start - export_legal_dates_to_excel *****' +
+    print(color.GREEN + color.BOLD + '***** start - export_dates_to_excel *****' +
           color.END)
+    export_dates_to_excel(dates)
+    print(color.PURPLE + color.BOLD + '***** end - exportdates_to_excel *****' +
+          color.END)
+
     legal_dates = dates[dates['is_legal_date']]
     print(color.BLUE + 'The legal dates :' + color.END)
     print(legal_dates[-20:])
-    export_dates_to_excel(legal_dates)
-    print(color.PURPLE + color.BOLD + '***** end - export_legal_dates_to_excel *****' +
-          color.END)
-
-
     show_my_plot(legal_dates, type)
-
-
     print(color.BLUE + 'Thank you!' + color.END)
 
 
-
-
-
-
-
-
-dr = ['01', '07', '2020', '25', '07', '2020']
+dr = ['01', '06', '2020', '05', '08', '2020']
 main(dr, 0)
 
 

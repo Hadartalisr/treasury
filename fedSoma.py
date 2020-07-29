@@ -18,6 +18,15 @@ def update_dates(d):
     df.date = df.date.astype(int)
     d.date = d.date.astype(int)
     d = d.merge(df, on="date", how="left")
+    for index, row in d.iterrows():
+        if not d.at[index, 'is_legal_date']:
+            if not d.at[index, 'fed_soma'] == 0:
+                fed_soma = d.at[index, 'fed_soma']
+                d.at[index, 'fed_soma'] = 0
+                i = index
+                while not d.at[i, 'is_legal_date']:
+                    i += 1
+                d.at[i, 'fed_soma'] += fed_soma
     d.date.apply(str)
     return d
 

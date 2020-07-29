@@ -199,13 +199,17 @@ def show_my_plot(df, type):
     for index, row in df.iterrows():
         row['date'] = update_my_date_to_date(row['date'])
     dates = df[['date']]
-    print(dates)
     formatter = MyFormatter(dates)
-
     fig, ax = plt.subplots()
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
-
     df['treasury_delta'].plot()
+    df['total_issues_sub_total_maturities'].plot()
+    df['fed_soma'].plot()
+    df['fed_investments'].plot()
+    df['mbs'].plot()
+    df['swap_delta'].plot()
+    df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
+
     plt.grid(True)
     plt.legend()
     plt.show()
