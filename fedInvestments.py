@@ -39,7 +39,7 @@ def update_fed_investments(dates, df):
     for i in range(0, len(dates)):
         cur = dates.loc[i, 'date']
         if cur not in df['date'].values:
-            if int(cur) <= int(today_my_date):
+            if int(cur) < int(today_my_date):
                 # need to update new values
                 new_date = cur
                 new_fed_investment = get_fed_acceptance_per_settlement_day(str(cur))
@@ -53,7 +53,8 @@ def update_fed_investments_future(dates, df):
     for i in range(0, len(dates)):
         cur = dates.loc[i, 'date']
         if int(cur) not in df['date'].values:
-            if int(cur) > int(today_my_date):
+            last_wed = get_last_wedensday(date.get_my_date_from_date(datetime.date.today()), 0)
+            if int(cur) >= int(last_wed):
                 # need to update new values
                 new_date = cur
                 new_fed_maturities = get_fed_acceptance_per_settlement_day(cur)
@@ -163,13 +164,13 @@ def get_past_fed_investments(d):
     return accepted
 
 
-
 # date in my_date format
 def get_fed_acceptance_per_settlement_day(d):
     acceptance = 0
     today = datetime.date.today()
     cur_date = date.get_date_from_my_date(str(d))
-    if cur_date < today: # need the get the operation date of the day before
+    last_wed = get_last_wedensday(date.get_my_date_from_date(today), 0)
+    if int(d) < int(last_wed):  # need the get the operation date of the day before
         acceptance = get_past_fed_investments(d)
     elif (cur_date-today).days < 15: # might be in the schedule
         csv_url = get_fed_schedule_url()
@@ -179,9 +180,8 @@ def get_fed_acceptance_per_settlement_day(d):
         cr = csv.reader(decoded_content.splitlines(), delimiter=',')
         my_list = list(cr)
         for row in my_list:
-            if row[0] == str(cur_date.month)+'/'+str(cur_date.day)+'/'+str(cur_date.year):
+            if row[2] == str(cur_date.month)+'/'+str(cur_date.day)+'/'+str(cur_date.year):
                 acceptance = acceptance + int(float(re.findall('\d+\.\d+', row[6])[0])*1000000000)
     else:
         acceptance = 0
     return acceptance
-

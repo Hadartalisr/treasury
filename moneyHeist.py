@@ -92,11 +92,54 @@ def validateDates(d):
                 raise Exception(str(d.at[index, date]) + " is not a legal day but had super data")
 
 
-
 def export_dates_to_excel(d):
     df = pd.DataFrame(d)
     filepath = '.idea/output.xlsx'
     df.to_excel(filepath, index=False)
+
+
+def export_weeks_sum_to_excel(d):
+    df = pd.DataFrame(d)
+    filepath = '.idea/weeks_sum.xlsx'
+    df.to_excel(filepath, index=False)
+
+def create_weeks_sum(d):
+    d['weekday'] = 0
+    d['week'] = 0
+    d['sum'] = 0
+    weeks = d[['date', 'issues_maturity_fedsoma_fedinv_mbs_swap', 'weekday', 'week']]
+    week = 0
+    for index, row in weeks.iterrows():
+        weekday = date.get_date_from_my_date(str(row['date'])).weekday()
+        weeks.at[index, 'weekday'] = weekday
+        if weekday == 0:
+            week += 1
+        weeks.at[index, 'week'] = week
+    weeks.set_index('week', inplace=True)
+    print(weeks[:])
+    weeks_sum = weeks.groupby(['week']).sum()
+    weeks = weeks.merge(weeks_sum, on="week", how="left").reset_index()
+    print(weeks[:])
+    final_sum = pd.DataFrame({'min': [], 'max': [], "week": [], "sum": []})
+    sum = 0
+    min = 0
+    max = 0
+    week = -1
+    for index, row in weeks.iterrows():
+        if weeks.at[index, 'week'] == week: # add to current row
+            max = int(weeks.at[index, 'date_x'])
+        else:
+            final_sum.loc[len(final_sum)] = [min, max, week, sum]
+            min = int(weeks.at[index, 'date_x'])
+            max = int(weeks.at[index, 'date_x'])
+            sum = int(weeks.at[index, 'issues_maturity_fedsoma_fedinv_mbs_swap_y'])
+            week += 1
+    final_sum = final_sum[final_sum['min'] != 0]
+    print(final_sum[:])
+    export_weeks_sum_to_excel(final_sum)
+
+
+
 
 # snp_data = []
 
@@ -205,8 +248,8 @@ def main(date_range, type):
 
     print(color.GREEN + color.BOLD + '***** start - validateDates *****' +
           color.END)
-    validateDates(dates)
-    print(color.BLUE + 'The dates are valid!' + color.END)
+    #validateDates(dates)
+    #print(color.BLUE + 'The dates are valid!' + color.END)
     print(color.PURPLE + color.BOLD + '***** end - validateDates *****' +
           color.END)
 
@@ -216,14 +259,20 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - exportdates_to_excel *****' +
           color.END)
 
+
+    weeks_sum = create_weeks_sum(dates)
+    """
     legal_dates = dates[dates['is_legal_date']]
     print(color.BLUE + 'The legal dates :' + color.END)
     print(legal_dates[-20:])
     show_my_plot(legal_dates, type)
     print(color.BLUE + 'Thank you!' + color.END)
+    """
 
 
-dr = ['01', '06', '2020', '05', '08', '2020']
+
+
+dr = ['01', '07', '2020', '28', '07', '2020']
 main(dr, 0)
 
 
