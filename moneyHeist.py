@@ -206,12 +206,19 @@ def main(date_range, type):
         raise Exception("update_dates_ambs dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_dates_ambs *****' + color.END)
 
-    print(color.GREEN + color.BOLD + '***** start - update_swap_delta *****' + color.END)
-    dates = swap.update_dates(dates)
+    print(color.GREEN + color.BOLD + '***** start - update_past_swap_delta *****' + color.END)
+    dates = swap.update_past_dates(dates)
     print(dates[-20:])
     if len(dates) > length:
-        raise Exception("update_swap_delta dates length was extended")
-    print(color.PURPLE + color.BOLD + '***** end - update_swap_delta *****' + color.END)
+        raise Exception("update_past_swap_delta dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_past_swap_delta *****' + color.END)
+
+    print(color.GREEN + color.BOLD + '***** start - update_future_swap_delta *****' + color.END)
+    dates = swap.update_future_dates(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("update_future_swap_delta dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - update_future_swap_delta *****' + color.END)
 
     print(color.GREEN + color.BOLD + '***** start - update_stocks *****' + color.END)
     dates = stocks.update_dates(dates)
@@ -261,18 +268,18 @@ def main(date_range, type):
 
 
     weeks_sum = create_weeks_sum(dates)
-    """
+
     legal_dates = dates[dates['is_legal_date']]
     print(color.BLUE + 'The legal dates :' + color.END)
     print(legal_dates[-20:])
     show_my_plot(legal_dates, type)
     print(color.BLUE + 'Thank you!' + color.END)
-    """
 
 
 
 
-dr = ['01', '07', '2020', '28', '07', '2020']
+
+dr = ['01', '06', '2020', '07', '08', '2020']
 main(dr, 0)
 
 
