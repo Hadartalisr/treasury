@@ -208,7 +208,26 @@ def show_my_plot(df, type):
     df['fed_investments'].plot()
     df['mbs'].plot()
     df['swap_delta'].plot()
+    df['future_swap'].plot()
     df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
+
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+
+def show_swap_plot(df):
+    df.reset_index(inplace=True)
+    for index, row in df.iterrows():
+        row['date'] = update_my_date_to_date(row['date'])
+    dates = df[['date']]
+    formatter = MyFormatter(dates)
+    fig, ax = plt.subplots()
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
+
+    df.plot(subplots=True)
+    # df['swap_delta'].plot()
+    # df['future_swap'].plot()
 
     plt.grid(True)
     plt.legend()
