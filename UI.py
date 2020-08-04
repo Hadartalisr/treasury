@@ -61,7 +61,7 @@ class MyFormatter(ticker.Formatter):
         ind = int(x)
         if ind >= len(self.df) or ind < 0:
             return ''
-        return self.df.at[ind, 'date']
+        return self.df.at[ind,'new_date']
 
 
 def update_my_date_to_date(d):
@@ -196,9 +196,10 @@ def get_total_maturities(d):
 
 def show_my_plot(df, type):
     df.reset_index(inplace=True)
+    df['new_date'] = 0
     for index, row in df.iterrows():
-        row['date'] = update_my_date_to_date(row['date'])
-    dates = df[['date']]
+        row['new_date'] = update_my_date_to_date(row['date'])
+    dates = df[['new_date']]
     formatter = MyFormatter(dates)
     fig, ax = plt.subplots()
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
@@ -210,7 +211,6 @@ def show_my_plot(df, type):
     df['swap_delta'].plot()
     df['future_swap'].plot()
     df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
-
     plt.grid(True)
     plt.legend()
     plt.show()
@@ -218,17 +218,27 @@ def show_my_plot(df, type):
 
 def show_swap_plot(df):
     df.reset_index(inplace=True)
+    df['new_date'] = 0
     for index, row in df.iterrows():
-        row['date'] = update_my_date_to_date(row['date'])
-    dates = df[['date']]
+        df.at[index, 'new_date'] = update_my_date_to_date(df.at[index, 'date'])
+    dates = df[['new_date']]
     formatter = MyFormatter(dates)
     fig, ax = plt.subplots()
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
 
-    df.plot(subplots=True)
-    # df['swap_delta'].plot()
-    # df['future_swap'].plot()
-
+    #df['European_Central_Bank'].plot(linewidth=2)
+    """
+    ax.scatter(df['new_date'].values, df["European_Central_Bank"].values, label="European_Central_Bank")
+    ax.scatter(df['new_date'].values, df["European_Central_Bank_mat"].values, label="European_Central_Bank_mat")
+    """
+    ax.scatter(df['new_date'].values, df["Bank_of_Japan"].values, label="Bank_of_Japan")
+    ax.scatter(df['new_date'].values, df["Bank_of_Japan_mat"].values, label="Bank_of_Japan_mat")
+    """
+    df['Bank_of_Japan'].plot(linewidth=2)
+    df["Bank_of_Japan_mat"].plot(marker='o')    
+    df['Bank_of_England'].plot(linewidth=2)
+    df["Bank_of_England_mat"].plot(marker='o')"""
     plt.grid(True)
     plt.legend()
     plt.show()
+

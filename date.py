@@ -41,3 +41,9 @@ def get_year_from_my_date(d):
     return '20' + d[0:2]
 
 
+# get datetime and keep just the relative hour in the day
+def keep_hour_from_date_time(dt):
+    h = dt.hour
+    m = dt.minute
+    new_dt = datetime.datetime(1, 1, 1, h, m)
+    return new_dt

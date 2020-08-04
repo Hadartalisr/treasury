@@ -107,6 +107,43 @@ def update_banks_swap(d):
     return d
 
 
+
+def get_past_banks_maturities():
+    excel_url = "https://apps.newyorkfed.org/~/media/files/usd_liquidity_swap_operation_results.xlsx?la=en"
+    print(excel_url)
+    resp = requests.get(excel_url)
+    resp = resp.content
+    data = pd.read_excel(resp, header=1)
+    df = pd.DataFrame(data)
+    df.columns = [c.replace('Counterparty', 'bank') for c in df.columns]
+    df.columns = [c.replace('Maturity Date', 'date') for c in df.columns]
+    df.columns = [c.replace('Amount (USD mil)', 'amount') for c in df.columns]
+    df.columns = [c.replace(' ', '_') for c in df.columns]
+    df['date'] = df.apply(lambda row: date.get_my_date_from_date(row['date']), axis=1)
+    df['amount'] = df['amount'].apply(lambda cell: cell*-1000000)
+    df = df[['date', 'bank', 'amount']]
+    return df
+
+
+def update_banks_maturities(dates, bank_mat):
+    bank_mat.date = bank_mat.date.astype(int)
+    dates.date = dates.date.astype(int)
+    banks = ["European Central Bank", "Bank of Japan", "Bank of England"]
+    for bank in banks:
+        bank_df = bank_mat[bank_mat['bank'] == bank]
+        bank_df = bank_df[['amount', 'date']]
+        bank_df = bank_df.groupby('date').sum().reset_index()
+        column_name = bank.replace(" ", "_") + "_mat"
+        bank_df.columns = [c.replace('amount', column_name) for c in bank_df.columns]
+        print(bank_df[:])
+        dates = dates.merge(bank_df, on="date", how="left")
+    dates.date.apply(str)
+    dates.reset_index(inplace=True)
+    return dates
+
+
+"""
+
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
@@ -114,9 +151,22 @@ dr = ['01', '06', '2020', '07', '08', '2020']
 df = holidays.generate_dates(dr)
 df = update_banks_swap(df)
 print(df[:])
-"""
+
+bank_maturities = get_past_banks_maturities()
+print(bank_maturities[:])
+
+
+df = update_banks_maturities(df, bank_maturities)
+print(df[:])
+
+
 df = update_past_dates(df)
 df = update_future_dates(df)
-"""
+
 legal_dates = df[df['is_legal_date']]
+legal_dates = legal_dates[['date', 'European_Central_Bank', 'European_Central_Bank_mat',
+                           'Bank_of_Japan', 'Bank_of_Japan_mat', 'Bank_of_England', 'Bank_of_England_mat']]
+print(legal_dates[:])
 UI.show_swap_plot(legal_dates)
+"""
+

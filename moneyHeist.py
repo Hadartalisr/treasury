@@ -20,7 +20,7 @@ import fedSoma
 import fedInvestments
 import ambs
 import swap
-
+import candles
 
 
 def update_data_issues_maturity_fedsoma_fedinv(d):
@@ -50,9 +50,9 @@ def update_data_issues_maturity_fedsoma_fedinv(d):
                 else:
                     d.at[index, 'issues_maturity_fedsoma_fedinv'] = -total_maturities-fed_investments
                 if fed_soma > 0:  # need to update cur_date
+                    index += 1
                     if index == len(d):
                         raise Exception("could not add the correct issues_maturity_fedsoma_fedinv to the last date.")
-                    index += 1
                     total_issues = d.at[index, 'total_issues']
                     total_maturities = d.at[index, 'total_maturities']
                     if d.at[index, 'issues_after_past_fed_soma'] != 0:
@@ -103,6 +103,7 @@ def export_weeks_sum_to_excel(d):
     filepath = '.idea/weeks_sum.xlsx'
     df.to_excel(filepath, index=False)
 
+
 def create_weeks_sum(d):
     d['weekday'] = 0
     d['week'] = 0
@@ -139,6 +140,12 @@ def create_weeks_sum(d):
     export_weeks_sum_to_excel(final_sum)
 
 
+def get_thursdays(df):
+    print("get_thursdays")
+    for index, row in df.iterrows():
+        df.loc[index, 'weekday'] = date.get_date_from_my_date(str(df.loc[index, 'date'])).weekday()
+    df = df[df['weekday'] == 3]
+    return df
 
 
 # snp_data = []
@@ -252,34 +259,40 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedsoma_fedinv_mbs_swap *****' +
           color.END)
 
-
     print(color.GREEN + color.BOLD + '***** start - validateDates *****' +
           color.END)
-    #validateDates(dates)
-    #print(color.BLUE + 'The dates are valid!' + color.END)
+    """validateDates(dates)
+    print(color.BLUE + 'The dates are valid!' + color.END)"""
     print(color.PURPLE + color.BOLD + '***** end - validateDates *****' +
           color.END)
 
     print(color.GREEN + color.BOLD + '***** start - export_dates_to_excel *****' +
           color.END)
-    export_dates_to_excel(dates)
+    # export_dates_to_excel(dates)
     print(color.PURPLE + color.BOLD + '***** end - exportdates_to_excel *****' +
           color.END)
 
 
-    weeks_sum = create_weeks_sum(dates)
+    # weeks_sum = create_weeks_sum(dates)
 
     legal_dates = dates[dates['is_legal_date']]
     print(color.BLUE + 'The legal dates :' + color.END)
     print(legal_dates[-20:])
-    show_my_plot(legal_dates, type)
-    print(color.BLUE + 'Thank you!' + color.END)
+    # show_my_plot(legal_dates, type)
+
+
+    thursdays = get_thursdays(legal_dates)
+    print(thursdays[-20:])
+    candles.plot_daily(thursdays)
+
+
+print(color.BLUE + 'Thank you!' + color.END)
 
 
 
 
 
-dr = ['01', '06', '2020', '07', '08', '2020']
+dr = ['01', '06', '2020', '31', '07', '2020']
 main(dr, 0)
 
 
