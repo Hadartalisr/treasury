@@ -204,18 +204,23 @@ def show_my_plot(df, type):
     formatter = MyFormatter(dates)
     fig, ax = plt.subplots()
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
-    """
+
     df['treasury_delta'].plot()
     df['total_issues_sub_total_maturities'].plot()
     df['fed_soma'].plot()
     df['fed_investments'].plot()
     df['mbs'].plot()
     df['swap_delta'].plot()
-    df['future_swap'].plot() 
+    df['future_swap'].plot()
+    df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
+
     """
     first_open = df.loc[0, 'Open']
     df['Open'].apply(lambda x: (x - first_open) * math.pow(10, 9)).plot()
     df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
+    df['future_swap'].plot()
+    df['swap_delta'].plot()
+    """
     plt.grid(True)
     plt.legend()
     plt.show()

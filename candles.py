@@ -8,14 +8,14 @@ import matplotlib.pyplot as plt
 
 def plot_daily(df):
     for index, row in df.iterrows():
-        get_stock(str(df.loc[index, 'date']))
+        get_stock(str(df.loc[index, 'date']), str(df.loc[index, 'swap_delta']))
     plt.grid(True)
     plt.legend()
     plt.show()
 
 
 #date in my_date format
-def get_stock(d):
+def get_stock(d, text_to_label):
     start_date = get_start_date(d)
     end_date = get_end_date(d)
     gspc = yf.Ticker("ES=F")
@@ -26,7 +26,8 @@ def get_stock(d):
     hist['Open'] = hist.apply(lambda row: row['Open'] - op, axis=1)
     hist = hist[:-1]
     print(hist[-100:])
-    hist['Open'].plot(label=d)
+    label = str(date.get_date_from_my_date(d)) + " " + text_to_label
+    hist['Open'].plot(label=label)
 
 
 #date in my_date format
@@ -48,7 +49,7 @@ def get_end_date(d):
 
 def get_stocks_df_between_dates():
     gspc = yf.Ticker("ES=F")
-    hist = gspc.history(start="2020-06-10", end="2020-08-01", interval="15m").reset_index()
+    hist = gspc.history(start="2020-06-10", end="2020-08-10", interval="15m").reset_index()
     hist['date'] = 0
     for index, row in hist.iterrows():
         hist.loc[index, 'date'] = date.get_my_date_from_datetime(hist.loc[index, 'Datetime'])

@@ -52,7 +52,8 @@ def update_data_issues_maturity_fedsoma_fedinv(d):
                 if fed_soma > 0:  # need to update cur_date
                     index += 1
                     if index == len(d):
-                        raise Exception("could not add the correct issues_maturity_fedsoma_fedinv to the last date.")
+                        break;
+                        #raise Exception("could not add the correct issues_maturity_fedsoma_fedinv to the last date.")
                     total_issues = d.at[index, 'total_issues']
                     total_maturities = d.at[index, 'total_maturities']
                     if d.at[index, 'issues_after_past_fed_soma'] != 0:
@@ -276,7 +277,7 @@ def main(date_range, type):
 
     print(color.GREEN + color.BOLD + '***** start - export_dates_to_excel *****' +
           color.END)
-    # export_dates_to_excel(dates)
+    export_dates_to_excel(dates)
     print(color.PURPLE + color.BOLD + '***** end - exportdates_to_excel *****' +
           color.END)
 
@@ -292,18 +293,21 @@ def main(date_range, type):
     print(legal_dates[-20:])
 
 
+    # merge with the futures S&P
+    """
     legal_dates.date = legal_dates.date.astype(int)
     futures.date = futures.date.astype(int)
-    legal_dates = legal_dates.merge(futures, on="date", how="left")
-    legal_dates.date.apply(str)
+    legal_dates = legal_dates.merge(futures, on="date", how="outer")
+    legal_dates.date.apply(str)"""
 
-    show_my_plot(legal_dates, type)
+    # show_my_plot(legal_dates, type)
 
-    """
-    thursdays = get_thursdays(legal_dates)
+
+
+    thursdays = get_thursdays(dates)
     print(thursdays[-20:])
     candles.plot_daily(thursdays)
-    """
+
 
 
 print(color.BLUE + 'Thank you!' + color.END)
@@ -312,7 +316,7 @@ print(color.BLUE + 'Thank you!' + color.END)
 
 
 
-dr = ['10', '06', '2020', '31', '07', '2020']
+dr = ['10', '06', '2020', '03', '08', '2020']
 main(dr, 0)
 
 

@@ -136,4 +136,3 @@ def get_issues_for_date(my_date):
 
 
 
-load_issues_maturities_df()
