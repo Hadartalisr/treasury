@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cbook as cbook
 import matplotlib.ticker as ticker
+import math
 
 """
 # Load a numpy record array from yahoo csv data with fields date, open, close,
@@ -198,18 +199,22 @@ def show_my_plot(df, type):
     df.reset_index(inplace=True)
     df['new_date'] = 0
     for index, row in df.iterrows():
-        row['new_date'] = update_my_date_to_date(row['date'])
+        df.loc[index, 'new_date'] = update_my_date_to_date(row['date'])
     dates = df[['new_date']]
     formatter = MyFormatter(dates)
     fig, ax = plt.subplots()
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
+    """
     df['treasury_delta'].plot()
     df['total_issues_sub_total_maturities'].plot()
     df['fed_soma'].plot()
     df['fed_investments'].plot()
     df['mbs'].plot()
     df['swap_delta'].plot()
-    df['future_swap'].plot()
+    df['future_swap'].plot() 
+    """
+    first_open = df.loc[0, 'Open']
+    df['Open'].apply(lambda x: (x - first_open) * math.pow(10, 9)).plot()
     df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
     plt.grid(True)
     plt.legend()

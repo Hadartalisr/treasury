@@ -36,6 +36,7 @@ def get_start_date(d):
     d = date.get_day_from_my_date(d)
     return y + "-" + m + "-" + d
 
+
 #date in my_date format
 def get_end_date(d):
     d = date.get_my_date_from_date(date.add_days_and_get_date(d, 1))
@@ -44,4 +45,16 @@ def get_end_date(d):
     d = date.get_day_from_my_date(d)
     return y + "-" + m + "-" + d
 
-get_stock("20080300")
+
+def get_stocks_df_between_dates():
+    gspc = yf.Ticker("ES=F")
+    hist = gspc.history(start="2020-06-10", end="2020-08-01", interval="15m").reset_index()
+    hist['date'] = 0
+    for index, row in hist.iterrows():
+        hist.loc[index, 'date'] = date.get_my_date_from_datetime(hist.loc[index, 'Datetime'])
+    hist.set_index('Datetime')
+    print(hist[-100:])
+    # hist['Open'].plot(label="WTF")
+    return hist
+
+

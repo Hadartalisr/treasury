@@ -1,6 +1,10 @@
 import datetime
 
 
+def get_my_date_from_datetime(dtime):
+    return get_my_date_from_date(dtime.date())
+
+
 def get_my_date_from_date(date):
     return date.strftime('%Y%m%d')[2:] + '00'
 
@@ -41,7 +45,7 @@ def get_year_from_my_date(d):
     return '20' + d[0:2]
 
 
-# get datetime and keep just the relative hour in the day
+# get datetime and the relevant date(d) in my_date format and return the relative hour in the day
 def keep_hour_from_date_time(dt, d):
     d_day = get_day_from_my_date(d)
     new_day = 2

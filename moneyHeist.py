@@ -140,6 +140,13 @@ def create_weeks_sum(d):
     export_weeks_sum_to_excel(final_sum)
 
 
+def update_weekday(df):
+    print("update_weekday")
+    for index, row in df.iterrows():
+        df.loc[index, 'weekday'] = date.get_date_from_my_date(str(df.loc[index, 'date'])).weekday()
+    return df
+
+
 def get_thursdays(df):
     print("get_thursdays")
     for index, row in df.iterrows():
@@ -161,6 +168,7 @@ class color:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     END = '\033[0m'
+
 
 
 # The process (main)
@@ -272,18 +280,30 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - exportdates_to_excel *****' +
           color.END)
 
+    dates = update_weekday(dates)
 
     # weeks_sum = create_weeks_sum(dates)
+
+    futures = candles.get_stocks_df_between_dates()
+
 
     legal_dates = dates[dates['is_legal_date']]
     print(color.BLUE + 'The legal dates :' + color.END)
     print(legal_dates[-20:])
-    # show_my_plot(legal_dates, type)
 
 
+    legal_dates.date = legal_dates.date.astype(int)
+    futures.date = futures.date.astype(int)
+    legal_dates = legal_dates.merge(futures, on="date", how="left")
+    legal_dates.date.apply(str)
+
+    show_my_plot(legal_dates, type)
+
+    """
     thursdays = get_thursdays(legal_dates)
     print(thursdays[-20:])
     candles.plot_daily(thursdays)
+    """
 
 
 print(color.BLUE + 'Thank you!' + color.END)
