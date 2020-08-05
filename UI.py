@@ -60,9 +60,9 @@ class MyFormatter(ticker.Formatter):
 
     def __call__(self, x, pos=0):
         ind = int(x)
-        if ind >= len(self.df) or ind < 0:
+        if ind >= len(self.df) or ind <= 0:
             return ''
-        return self.df.at[ind,'new_date']
+        return self.df.at[ind, 'Datetime']
 
 
 def update_my_date_to_date(d):
@@ -200,11 +200,12 @@ def show_my_plot(df, type):
     df['new_date'] = 0
     for index, row in df.iterrows():
         df.loc[index, 'new_date'] = update_my_date_to_date(row['date'])
-    dates = df[['new_date']]
+    dates = df[['Datetime']]
     formatter = MyFormatter(dates)
     fig, ax = plt.subplots()
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
-
+    # df = df.set_index('Datetime')
+    """
     df['treasury_delta'].plot()
     df['total_issues_sub_total_maturities'].plot()
     df['fed_soma'].plot()
@@ -215,12 +216,15 @@ def show_my_plot(df, type):
     df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
 
     """
-    first_open = df.loc[0, 'Open']
-    df['Open'].apply(lambda x: (x - first_open) * math.pow(10, 9)).plot()
+    ax.set_label('issues_maturity_fedsoma_fedinv_mbs_swap')
     df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
-    df['future_swap'].plot()
-    df['swap_delta'].plot()
-    """
+
+
+    # first_open = df.loc[0, 'Open']
+    ax = df['Open'].plot(secondary_y=True)
+    ax.set_label('S&P 500')
+    # df['future_swap'].plot()
+    # df['swap_delta'].plot()
     plt.grid(True)
     plt.legend()
     plt.show()

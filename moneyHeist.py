@@ -294,20 +294,20 @@ def main(date_range, type):
 
 
     # merge with the futures S&P
-    """
+
     legal_dates.date = legal_dates.date.astype(int)
     futures.date = futures.date.astype(int)
-    legal_dates = legal_dates.merge(futures, on="date", how="outer")
-    legal_dates.date.apply(str)"""
+    legal_dates = legal_dates.merge(futures, on="date", how="left")
+    legal_dates.date.apply(str)
 
-    # show_my_plot(legal_dates, type)
+    show_my_plot(legal_dates, type)
 
 
-
+    """
     thursdays = get_thursdays(dates)
     print(thursdays[-20:])
     candles.plot_daily(thursdays)
-
+    """
 
 
 print(color.BLUE + 'Thank you!' + color.END)
@@ -315,8 +315,7 @@ print(color.BLUE + 'Thank you!' + color.END)
 
 
 
-
-dr = ['10', '06', '2020', '03', '08', '2020']
+dr = ['05', '06', '2020', '01', '08', '2020']
 main(dr, 0)
 
 
