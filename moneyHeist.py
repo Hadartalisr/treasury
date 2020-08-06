@@ -299,11 +299,15 @@ def main(date_range, type):
     futures.date = futures.date.astype(int)
     legal_dates = legal_dates.merge(futures, on="date", how="left")
     legal_dates.date.apply(str)
+    legal_dates = legal_dates.fillna(0).reset_index()
 
-    # show_my_plot(legal_dates, type)
 
-    legal_dates = legal_dates.reset_index()[['index', 'Datetime','total_issues_sub_total_maturities','treasury_delta',
-                                             'fed_soma', 'Open', 'issues_maturity_fedsoma_fedinv_mbs_swap']]
+# show_my_plot(legal_dates, type)
+    """
+    legal_dates = legal_dates.reset_index()[['index', 'Datetime','issues_maturity_fedsoma_fedinv_mbs_swap','fed_soma',
+                                             'total_issues_sub_total_maturities', 'treasury_delta']]"""
+    """,'total_issues_sub_total_maturities','treasury_delta',
+                                             'fed_soma', 'Open', ]]"""
     legal_dates['Datetime'] = legal_dates['Datetime'].apply(lambda row: str(row)[:-6])
 
     return to_obj(legal_dates)
