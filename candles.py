@@ -50,7 +50,7 @@ def get_end_date(d):
 
 def get_stocks_df_between_dates():
     gspc = yf.Ticker("ES=F")
-    hist = gspc.history(start="2020-06-10", end="2020-08-04", interval="15m").reset_index()
+    hist = gspc.history(start="2020-06-10", end="2020-08-06", interval="15m").reset_index()
     hist['date'] = 0
     for index, row in hist.iterrows():
         hist.loc[index, 'date'] = date.get_my_date_from_datetime(hist.loc[index, 'Datetime'])

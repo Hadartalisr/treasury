@@ -217,12 +217,25 @@ def show_my_plot(df, type):
 
     """
     ax.set_label('issues_maturity_fedsoma_fedinv_mbs_swap')
-    df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
+    #df['issues_maturity_fedsoma_fedinv_mbs_swap'].plot()
+    df['new_sup'] = df['issues_maturity_fedsoma_fedinv_mbs_swap']
 
-
-    # first_open = df.loc[0, 'Open']
     ax = df['Open'].plot(secondary_y=True)
     ax.set_label('S&P 500')
+
+    for index, row in df.iterrows():
+        d = df.at[index, 'Datetime']
+        if (d.hour == 18 and d.minute == 0) or (d.weekday() == 4 and d.hour == 16 and d.minute == 45):
+            plt.scatter(x=index, y=df.at[index, 'Open'], marker="*", s=90, color="#32a832")
+        if d.hour >= 18:
+            n = 0
+            if index + 30 < len(df):
+                n = df.at[index+30, 'issues_maturity_fedsoma_fedinv_mbs_swap']
+            df.at[index, 'new_sup'] = n
+
+    df['new_sup'].plot()
+
+
     # df['future_swap'].plot()
     # df['swap_delta'].plot()
     plt.grid(True)
