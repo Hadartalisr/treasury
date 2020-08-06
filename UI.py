@@ -205,7 +205,7 @@ def show_my_plot(df, type):
     fig, ax = plt.subplots()
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(formatter))
     # df = df.set_index('Datetime')
-    """
+
     df['treasury_delta'].plot()
     df['total_issues_sub_total_maturities'].plot()
     df['fed_soma'].plot()
@@ -234,7 +234,7 @@ def show_my_plot(df, type):
             df.at[index, 'new_sup'] = n
 
     df['new_sup'].plot()
-
+    """
 
     # df['future_swap'].plot()
     # df['swap_delta'].plot()

@@ -302,7 +302,9 @@ def main(date_range, type):
 
     # show_my_plot(legal_dates, type)
 
-    legal_dates = legal_dates[['date', 'is_legal_date']]
+    legal_dates = legal_dates.reset_index()[['index', 'Datetime','total_issues_sub_total_maturities','treasury_delta',
+                                             'fed_soma', 'Open', 'issues_maturity_fedsoma_fedinv_mbs_swap']]
+    legal_dates['Datetime'] = legal_dates['Datetime'].apply(lambda row: str(row)[:-6])
 
     return to_obj(legal_dates)
 
@@ -313,10 +315,11 @@ def main(date_range, type):
     """
 
 
-print(color.BLUE + 'Thank you!' + color.END)
 
-
-
+"""
+dr = ["01", "08", "2020", "05", "08", "2020"]
+main(dr,1)
+"""
 
 
 
