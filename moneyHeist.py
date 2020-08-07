@@ -281,8 +281,9 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - exportdates_to_excel *****' +
           color.END)
 
+    """
     dates = update_weekday(dates)
-
+    """
     # weeks_sum = create_weeks_sum(dates)
 
     futures = candles.get_stocks_df_between_dates()
