@@ -1,5 +1,8 @@
+import datetime
 import math
 import pandas as pd
+import pytz
+
 from UI import show_my_plot
 import stocks
 import date
@@ -161,6 +164,58 @@ class color:
     END = '\033[0m'
 
 
+def get_trading_index():
+    return [get_trading_index.counter, get_trading_index.trading_min, get_trading_index.trading_max,
+            get_trading_index.open]
+
+
+get_trading_index.counter = 0
+get_trading_index.trading_min = 0
+get_trading_index.trading_max = 0
+get_trading_index.open = 0
+
+
+# if -1 then set all the counters to 0, if num = 1 - counter +=1
+def update_trading_index(op, trading_min, trading_max, num):
+    if num == -1:
+        get_trading_index.counter = 0
+        get_trading_index.trading_min = 10000000
+        get_trading_index.trading_max = 0
+        get_trading_index.open = op
+        return
+    if num == 1:
+        get_trading_index.counter += 1
+        get_trading_index.trading_min = 10000000
+        get_trading_index.trading_max = 0
+        get_trading_index.open = op
+        return
+    get_trading_index.trading_min = trading_min
+    get_trading_index.trading_max += trading_max
+
+
+# update the [['future_start', 'trading_index', 'trading_min', 'trading_max']]
+def get_future_start(row):
+    dt = row['Datetime']
+    utc = pytz.UTC
+    if dt >= utc.localize(datetime.datetime.today()):
+        return pd.Series([0, 0, 0, 0])
+    weekday = dt.weekday()
+    hour = dt.hour
+    minute = dt.minute
+    # if (hour == 18 and minute == 0) or (hour == 17 and weekday == 4):  # and weekday != 4: or (hour == 17 and minute == 0 and weekday == 4):
+    future_start = 0
+    if hour == 18 and minute == 0:
+        future_start = row['Open']
+        update_trading_index(future_start, 0, 0, 1)
+    arr = get_trading_index()
+    trading_index = arr[0]
+    new_trading_min = min(row['Low'], arr[1])
+    new_trading_max = max(row['High'], arr[0])
+    update_trading_index(0, new_trading_min, new_trading_max, 0)
+    trading_percents = float(row['Open'])/float(arr[2])
+    return pd.Series([future_start, trading_index, new_trading_min, new_trading_max, trading_percents])
+
+
 def to_obj(df):
     d = [
         dict([
@@ -172,13 +227,10 @@ def to_obj(df):
     return d
 
 
-# The process (main)
-def main(date_range, type):
+def get_dates_df(date_range):
 
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 1000)
-
-    # input('please insert the wanted date range in the following format: dd mm yyyy dd mm yyyy\n').split(' ')
 
     print(color.GREEN + color.BOLD + '***** start - generate_dates *****' + color.END)
     dates = holidays.generate_dates(date_range)
@@ -235,14 +287,14 @@ def main(date_range, type):
     if len(dates) > length:
         raise Exception("update_future_swap_delta dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_future_swap_delta *****' + color.END)
-
+    """
     print(color.GREEN + color.BOLD + '***** start - update_stocks *****' + color.END)
     dates = stocks.update_dates(dates)
     print(dates[-20:])
     if len(dates) > length:
         raise Exception("update_stocks dates length was extended")
     print(color.PURPLE + color.BOLD + '***** end - update_stocks *****' + color.END)
-
+    """
     print(color.GREEN + color.BOLD + '***** start - update_super_data_issues_maturity_fedsoma_fedinv *****' + color.END)
     dates = update_data_issues_maturity_fedsoma_fedinv(dates)
     print(dates[-20:])
@@ -268,63 +320,59 @@ def main(date_range, type):
     print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedsoma_fedinv_mbs_swap *****' +
           color.END)
 
+    """
     print(color.GREEN + color.BOLD + '***** start - validateDates *****' +
           color.END)
-    """validateDates(dates)
-    print(color.BLUE + 'The dates are valid!' + color.END)"""
+    "" "validateDates(dates)
+    print(color.BLUE + 'The dates are valid!' + color.END)" ""
     print(color.PURPLE + color.BOLD + '***** end - validateDates *****' +
           color.END)
-
+    
     print(color.GREEN + color.BOLD + '***** start - export_dates_to_excel *****' +
           color.END)
     export_dates_to_excel(dates)
     print(color.PURPLE + color.BOLD + '***** end - exportdates_to_excel *****' +
           color.END)
+    """
 
     """
     dates = update_weekday(dates)
     """
     # weeks_sum = create_weeks_sum(dates)
 
-    futures = candles.get_stocks_df_between_dates()
-
-
-    legal_dates = dates[dates['is_legal_date']]
-    print(color.BLUE + 'The legal dates :' + color.END)
-    print(legal_dates[-20:])
-
+    # get the s&p futures data
+    start_date = str(dates.at[0, 'date'])
+    end_date = str(dates.at[len(dates)-1, 'date'])
+    futures = candles.get_stocks_df_between_dates(start_date, end_date)
 
     # merge with the futures S&P
-
-    legal_dates.date = legal_dates.date.astype(int)
+    dates.date = dates.date.astype(int)
     futures.date = futures.date.astype(int)
-    legal_dates = legal_dates.merge(futures, on="date", how="left")
-    legal_dates.date.apply(str)
-    legal_dates = legal_dates.fillna(0).reset_index()
+    dates = dates.merge(futures, on="date", how="left").loc[1:]
+    dates.date.apply(str)
+
+    # add the future_start (the time which the futures contract starts)
+    update_trading_index(float(dates.loc[0, 'Open']), 0, 0, -1)
+    dates[['future_start', 'trading_index', 'trading_min', 'trading_max', 'trading_percents']] =  \
+        dates.apply(lambda row: get_future_start(row), axis=1)
+
+    # delete the time zone from the dates and fill null values with zero's
+    dates = dates.fillna(0).reset_index()
+    dates['Datetime'] = dates['Datetime'].apply(lambda row: str(row)[:-6])
+    return dates
 
 
-# show_my_plot(legal_dates, type)
-    """
-    legal_dates = legal_dates.reset_index()[['index', 'Datetime','issues_maturity_fedsoma_fedinv_mbs_swap','fed_soma',
-                                             'total_issues_sub_total_maturities', 'treasury_delta']]"""
-    """,'total_issues_sub_total_maturities','treasury_delta',
-                                             'fed_soma', 'Open', ]]"""
-    legal_dates['Datetime'] = legal_dates['Datetime'].apply(lambda row: str(row)[:-6])
-
-    return to_obj(legal_dates)
-
-    """
-    thursdays = get_thursdays(dates)
-    print(thursdays[-20:])
-    candles.plot_daily(thursdays)
-    """
+# The process (main)
+def main(date_range):
+    dates = get_dates_df(date_range)
+    dates_obj = to_obj(dates)
+    return dates_obj
 
 
 
-"""
-dr = ["01", "08", "2020", "05", "08", "2020"]
-main(dr,1)
-"""
+dr = ["02", "08", "2020", "07", "08", "2020"]
+get_dates_df(dr)
+
 
 
 

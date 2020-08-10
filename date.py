@@ -16,6 +16,11 @@ def get_date_from_my_date(my_date):
     return datetime.date(int(my_date_year), int(my_date_month), int(my_date_day))
 
 
+def get_datetime_from_my_date(my_date):
+    date = get_date_from_my_date(my_date)
+    return datetime.datetime(date.year, date.month, date.day)
+
+
 def get_date_format_for_treasurydirect(date):
     my_date = str(date[2:4]) + str(date[5:7]) + str(date[8:10]) + "00"
     return my_date

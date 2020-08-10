@@ -3,7 +3,8 @@ import pandas as pd
 import UI
 import date
 import matplotlib.pyplot as plt
-
+import datetime
+import pytz
 
 
 def plot_daily(df):
@@ -33,30 +34,45 @@ def get_stock(d, text_to_label):
 
 #date in my_date format
 def get_start_date(d):
-    y = date.get_year_from_my_date(d)
-    m = date.get_month_from_my_date(d)
-    d = date.get_day_from_my_date(d)
-    return y + "-" + m + "-" + d
+    return generate_stock_date_from_my_date(d)
 
 
 #date in my_date format
 def get_end_date(d):
     d = date.get_my_date_from_date(date.add_days_and_get_date(d, 1))
-    y = date.get_year_from_my_date(d)
-    m = date.get_month_from_my_date(d)
-    d = date.get_day_from_my_date(d)
-    return y + "-" + m + "-" + d
+    return generate_stock_date_from_my_date(d)
 
 
-def get_stocks_df_between_dates():
+# this function generates the stock dates and also add days and hours in the future so the graph will
+# be at the same scale (my_date format)
+def get_stocks_df_between_dates(start_date, end_date):
+    stock_start_date = generate_stock_date_from_my_date(start_date)
+    stock_end_date = generate_stock_date_from_my_date(end_date)
     gspc = yf.Ticker("ES=F")
-    hist = gspc.history(start="2020-06-10", end="2020-08-06", interval="15m").reset_index()
+    hist = gspc.history(start=stock_start_date, end=stock_end_date, interval="60m").reset_index()
+    hist = generate_future_dates(hist, end_date)
     hist['date'] = 0
     for index, row in hist.iterrows():
         hist.loc[index, 'date'] = date.get_my_date_from_datetime(hist.loc[index, 'Datetime'])
     hist.set_index('Datetime')
     print(hist[-100:])
-    # hist['Open'].plot(label="WTF")
     return hist
 
+
+# the method receive df and date in my_date format and add hours and rows for future dates
+def generate_future_dates(df, d):
+    utc = pytz.UTC
+    should_be_last_date = utc.localize(date.get_datetime_from_my_date(d) + datetime.timedelta(days=1, hours=4))
+    last_datetime = df.at[len(df)-2, 'Datetime'] + datetime.timedelta(minutes=15)
+    while last_datetime < should_be_last_date:
+        last_datetime = last_datetime + datetime.timedelta(minutes=15)
+        df.loc[len(df)] = [last_datetime, 0, 0, 0, 0, 0, 0, 0]
+    return df
+
+
+def generate_stock_date_from_my_date(d):
+    y = date.get_year_from_my_date(d)
+    m = date.get_month_from_my_date(d)
+    d = date.get_day_from_my_date(d)
+    return y + "-" + m + "-" + d
 
