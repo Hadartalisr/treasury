@@ -197,7 +197,7 @@ def update_trading_index(op, trading_min, trading_max, num):
 def get_future_start(row):
     dt = row['Datetime']
     utc = pytz.UTC
-    if dt >= utc.localize(datetime.datetime.today()):
+    if dt >= datetime.datetime.today() - datetime.timedelta(days=1):
         return pd.Series([0, 0, 0, 0])
     weekday = dt.weekday()
     hour = dt.hour
@@ -210,9 +210,13 @@ def get_future_start(row):
     arr = get_trading_index()
     trading_index = arr[0]
     new_trading_min = min(row['Low'], arr[1])
-    new_trading_max = max(row['High'], arr[0])
+    new_trading_max = max(row['High'], arr[2])
     update_trading_index(0, new_trading_min, new_trading_max, 0)
-    trading_percents = float(row['Open'])/float(arr[2])
+    trading_percents = 0
+    if arr[3] != 0:
+        start = float(arr[3])
+        current = float(row['Open'])
+        trading_percents = ((current-start)*100)/start
     return pd.Series([future_start, trading_index, new_trading_min, new_trading_max, trading_percents])
 
 
@@ -342,7 +346,7 @@ def get_dates_df(date_range):
 
     # get the s&p futures data
     start_date = str(dates.at[0, 'date'])
-    end_date = str(dates.at[len(dates)-1, 'date'])
+    end_date = date.get_my_date_from_date(date.add_days_and_get_date(str(dates.at[len(dates)-1, 'date']), 5))
     futures = candles.get_stocks_df_between_dates(start_date, end_date)
 
     # merge with the futures S&P
@@ -352,7 +356,7 @@ def get_dates_df(date_range):
     dates.date.apply(str)
 
     # add the future_start (the time which the futures contract starts)
-    update_trading_index(float(dates.loc[0, 'Open']), 0, 0, -1)
+    update_trading_index(dates.at[1, 'Open'], 0, 0, -1)
     dates[['future_start', 'trading_index', 'trading_min', 'trading_max', 'trading_percents']] =  \
         dates.apply(lambda row: get_future_start(row), axis=1)
 
@@ -369,11 +373,11 @@ def main(date_range):
     return dates_obj
 
 
-
+"""
 dr = ["02", "08", "2020", "07", "08", "2020"]
 get_dates_df(dr)
 
-
+"""
 
 
 
