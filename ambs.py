@@ -114,11 +114,12 @@ def load_ambs_df():
 
 
 def update_dates(d):
+    """
     if datetime.date.today().day in (11, 12, 13, 14, 15, 16):
         # need to generate new json (maybe there is new data) // can improve later
         print("need the check for updates in the ambs data...")
         generate_ambs_excel()
-        print("finished to update ambs data.")
+        print("finished to update ambs data.")"""
     df = load_ambs_df()
     df.date = df.date.astype(int)
     d.date = d.date.astype(int)

@@ -14,7 +14,7 @@ import fedInvestments
 import ambs
 import swap
 import candles
-
+import statistics
 
 def update_data_issues_maturity_fedsoma_fedinv(d):
     d['issues_after_past_fed_soma'] = 0
@@ -197,7 +197,7 @@ def update_trading_index(op, trading_min, trading_max, num):
 def get_future_start(row):
     dt = row['Datetime']
     utc = pytz.UTC
-    if dt >= datetime.datetime.today() - datetime.timedelta(days=1):
+    if dt >= utc.localize(datetime.datetime.today() - datetime.timedelta(days=1)):
         return pd.Series([0, 0, 0, 0])
     weekday = dt.weekday()
     hour = dt.hour
@@ -215,7 +215,7 @@ def get_future_start(row):
     trading_percents = 0
     if arr[3] != 0:
         start = float(arr[3])
-        current = float(row['Open'])
+        current = float(row['High'])
         trading_percents = ((current-start)*100)/start
     return pd.Series([future_start, trading_index, new_trading_min, new_trading_max, trading_percents])
 
@@ -359,6 +359,8 @@ def get_dates_df(date_range):
     update_trading_index(dates.at[1, 'Open'], 0, 0, -1)
     dates[['future_start', 'trading_index', 'trading_min', 'trading_max', 'trading_percents']] =  \
         dates.apply(lambda row: get_future_start(row), axis=1)
+
+    dates = statistics.get_max_percent(dates)
 
     # delete the time zone from the dates and fill null values with zero's
     dates = dates.fillna(0).reset_index()
