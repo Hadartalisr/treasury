@@ -375,6 +375,13 @@ def main(date_range):
     return dates_obj
 
 
+def get_long_days(date_range, amount):
+    dates = get_dates_df(date_range)
+    long_days = get_days_with_super_data_less_then(dates, amount)
+    long_days_obj = to_obj(long_days)
+    return long_days_obj
+
+
 # df, amount is the amount as number
 def get_days_with_super_data_less_then(df, amount):
     print("get_days_with_super_date_less_then: " + str(amount) + " $.")
@@ -416,10 +423,12 @@ def get_long_day(d):
     return d
 
 
+
+"""
 dr = ["02", "08", "2020", "07", "08", "2020"]
 df = get_dates_df(dr)
 long_df = get_days_with_super_data_less_then(df, -10000000000)
-
+"""
 
 
 
