@@ -375,11 +375,52 @@ def main(date_range):
     return dates_obj
 
 
-"""
-dr = ["02", "08", "2020", "07", "08", "2020"]
-get_dates_df(dr)
+# df, amount is the amount as number
+def get_days_with_super_data_less_then(df, amount):
+    print("get_days_with_super_date_less_then: " + str(amount) + " $.")
+    new_df = df[df['issues_maturity_fedsoma_fedinv_mbs'] <= amount][['date']].drop_duplicates()
+    long_days = get_long_days_from_super_data(new_df)
+    long_trading_indices = get_long_trading_indices(df, long_days)
+    return long_trading_indices
 
-"""
+
+def get_long_trading_indices(dataframe, long_days_df):
+    dataframe.date = dataframe.date.astype(int)
+    long_days_df.date = long_days_df.date.astype(int)
+    merged_df = long_days_df.merge(dataframe, on="date", how="left")
+    merged_df = merged_df.groupby(['date']).min()[['trading_index']]
+    new_df = merged_df.merge(dataframe, on="trading_index", how="left")
+    new_df.date.apply(str)
+    return new_df
+
+
+def get_long_days_from_super_data(df):
+    long_days_df = pd.DataFrame(columns=['date'])
+    for index, row in df.iterrows():
+        curr_my_date = str(df.at[index, 'date'])
+        new_my_date = get_long_day(curr_my_date)
+        long_days_df.loc[len(long_days_df)] = [new_my_date]
+    return long_days_df
+
+
+# d - date in my_date format , return date in my_date format
+def get_long_day(d):
+    curr_date = date.get_date_from_my_date(d)
+    weekday = curr_date.weekday()
+    if weekday == 0:
+        return d
+    day_before = date.add_days_and_get_date(d, -1)  # day before is in date format
+    is_day_before_legal = holidays.is_legal_day(day_before)
+    if is_day_before_legal:
+        return date.get_my_date_from_date(day_before)
+    return d
+
+
+dr = ["02", "08", "2020", "07", "08", "2020"]
+df = get_dates_df(dr)
+long_df = get_days_with_super_data_less_then(df, -10000000000)
+
+
 
 
 
