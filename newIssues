@@ -1,0 +1,61 @@
+import sys
+import pandas as pd
+import requests
+import date
+import json
+import datetime
+
+
+# date in my_date_format
+def get_date_auction_url(my_date):
+    day = date.get_day_from_my_date(my_date)
+    month = date.get_month_from_my_date(my_date)
+    year = date.get_year_from_my_date(my_date)
+    url = "https://www.treasurydirect.gov/TA_WS/securities/jqsearch?format=jsonp&callback=" + \
+    "jQuery110203977164206909327_1597995768255&auctionDateoperator=and&filtervalue0=" + \
+    month + "%2F" + day + "%2F" + year + \
+    "&filtercondition0=GREATER_THAN_OR_EQUAL&filteroperator0=0&filterdatafield0=auctionDate&" + \
+    "filtervalue1=" +  month + "%2F" + day + "%2F" + year + \
+    "&filtercondition1=" + \
+    "LESS_THAN_OR_EQUAL&filteroperator1=0&filterdatafield1=auctionDate&filterscount=2&groupscount=0&" +\
+    "pagenum=0&pagesize=100&recordstartindex=0&recordendindex=100&_=1597999060292"
+    return url
+
+
+# date in my_date_format
+def get_issues_from_date(my_date):
+    url = get_date_auction_url(my_date)
+    print(url)
+    retries = 0
+    response = requests.get(url)
+    while response.status_code != 200 and retries < 3:
+        response = requests.get(url)
+        retries += 1
+    if response.status_code != 200:
+        sys.exit(2)
+    str = response.text
+    i = str.index("(")
+    str = str[i + 1:-2]
+    obj = json.loads(str)
+    total_issues = 0
+    for obje in obj['securityList']:
+        total_issues += int(obje['offeringAmount'])
+    df = pd.DataFrame(columns=["date", "total_amount_per_auction_date", "offering_Amount", "percents", "issue_date"])
+    for obje in obj['securityList']:
+        offering_amount = obje['offeringAmount']
+        percents = float(offering_amount)/float(total_issues)
+        issue_date = obje['issueDate']
+        issue_date = issue_date[2:4] + issue_date[5:7] + issue_date[8:10] + "00"
+        df.loc[len(df)] = [my_date, total_issues, offering_amount, percents, issue_date]
+    return df
+
+
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
+
+print(get_issues_from_date("20082000").head())
+
+
+
+
