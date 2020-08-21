@@ -78,4 +78,3 @@ def generate_dates(dr):
     return df
 
 
-

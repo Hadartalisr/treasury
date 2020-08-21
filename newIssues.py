@@ -26,8 +26,8 @@ def update_past_auction_dates(dates, df):
         if int(cur) not in df['date'].values:
             if int(cur) <= int(today_my_date):
                 # need to update new values
-                new_date = cur
-                new_auction_date_df = get_issues_from_date(cur)
+                new_date = str(cur)
+                new_auction_date_df = get_issues_from_date(new_date)
                 if len(df) == 0:
                     df = new_auction_date_df
                 else:
@@ -81,19 +81,20 @@ def get_issues_from_date(my_date):
     i = str.index("(")
     str = str[i + 1:-2]
     obj = json.loads(str)
-    df = pd.DataFrame(columns=["date", "total_amount_per_auction_date", "offering_Amount", "percents", "issue_date"])
+    df = pd.DataFrame(columns=["cusip", "date", "total_amount_per_auction_date", "offering_Amount", "percents", "issue_date"])
     if int(obj['totalResultsCount']) == 0:
-        df.loc[len(df)] = [my_date, 0, 0, 0, 0]
+        df.loc[len(df)] = [0, my_date, 0, 0, 0, 0]
     else:
         total_issues = 0
         for obje in obj['securityList']:
             total_issues += int(obje['offeringAmount'])
         for obje in obj['securityList']:
+            cusip = obje['cusip']
             offering_amount = obje['offeringAmount']
             percents = float(offering_amount)/float(total_issues)
             issue_date = obje['issueDate']
             issue_date = issue_date[2:4] + issue_date[5:7] + issue_date[8:10] + "00"
-            df.loc[len(df)] = [my_date, total_issues, offering_amount, percents, issue_date]
+            df.loc[len(df)] = [cusip, my_date, total_issues, offering_amount, percents, issue_date]
     return df
 
 
