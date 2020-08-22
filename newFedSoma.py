@@ -22,11 +22,11 @@ def update_past_new_fed_soma_df(d, df):
     for i in range(0, len(d)):
         cur = d.loc[i, 'date']
         if int(cur) not in df['date'].values:
+            # need to update new values
+            new_date = cur
+            new_past_fed_soma = get_past_new_fed_soma(cur)
+            df.loc[len(df)] = [new_date, new_past_fed_soma]
             if int(cur) <= int(today_my_date):
-                # need to update new values
-                new_date = cur
-                new_past_fed_soma = get_past_new_fed_soma(cur)
-                df.loc[len(df)] = [new_date, new_past_fed_soma]
                 dump_fed_soma_df(df)
 
 

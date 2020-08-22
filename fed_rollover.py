@@ -11,23 +11,28 @@ import holidays
 def update_dates(df):
     df = newFedSoma.update_dates(df)
     df = newIssues.update_dates(df)
-    df = update_new_past_fed_soma_true(df)
+    df = update_new_fed_soma_true(df)
     df = update_soma_rollover(df)
     dump_fed_rollover_df(df)
     return df
 
 
-def update_new_past_fed_soma_true(df):
-    df['new_past_fed_soma_true'] = 0
+def update_new_fed_soma_true(df):
+    df['new_fed_soma_true'] = 0
     for i, r in df[::-1].iterrows():
-        value_to_add = int(df.at[i, 'new_past_fed_soma'])
+        value_to_add = int(df.at[i, 'new_fed_soma'])
         index = i
-        while not df.at[index, 'is_legal_date']:
-            if index == 0:
-                return
-            else:
+        if df.at[index, 'is_legal_date']:
+            df.at[index, 'new_fed_soma_true'] += value_to_add
+        else:
+            while not (df.at[index, 'is_legal_date'] and df.at[index, 'offering_Amount'] > 0):
+                if index == 0:
+                    break
+                else:
+                    index -= 1
+            while index-1 >= 0 and df.at[index, 'date'] == df.at[index-1, 'date']:
                 index -= 1
-        df.at[index, 'new_past_fed_soma_true'] += value_to_add
+            df.at[index, 'new_fed_soma_true'] += value_to_add
     return df
 
 
@@ -44,21 +49,19 @@ def update_soma_rollover(df):
         daily_fed_soma_reserve = 0
         if i == 0:
             past_fed_soma_reserve = 0
+            fed_soma_reserve = 0
         else:
             past_fed_soma_reserve = df.at[i-1, 'fed_soma_reserve']
+            fed_soma_reserve = past_fed_soma_reserve
             if df.at[i, 'date'] == df.at[i-1, 'date']:
                 daily_fed_soma_reserve = df.at[i-1, 'daily_fed_soma_reserve']
             else:
-                daily_fed_soma_reserve = df.at[i-1, 'fed_soma_reserve']+df.at[i, 'new_past_fed_soma_true']
-
-        fed_soma_reserve = past_fed_soma_reserve+df.at[i, 'new_past_fed_soma_true']
+                daily_fed_soma_reserve = df.at[i-1, 'fed_soma_reserve'] + df.at[i, 'new_fed_soma_true']
+                fed_soma_reserve += df.at[i, 'new_fed_soma_true']
 
         percents = df.at[i, 'percents']
         if percents == 0:   # there is NOT offering_Amount
-            df.at[i, "fed_soma_reserve"] = fed_soma_reserve
-            df.at[i, 'rollover'] = 0
-            df.at[i, 'issue_to_market'] = 0
-            continue
+            rollover = 0
         else:   # there is offering_Amount
             offering_amount = df.at[i, 'offering_Amount']
             percents_from_fed = percents
@@ -68,10 +71,10 @@ def update_soma_rollover(df):
             issue_to_market = offering_amount - rollover
             fed_soma_reserve = fed_soma_reserve-rollover
 
-            df.at[i, "fed_soma_reserve"] = fed_soma_reserve
-            df.at[i, 'rollover'] = rollover
-            df.at[i, 'issue_to_market'] = issue_to_market
-            df.at[i, "daily_fed_soma_reserve"] = daily_fed_soma_reserve
+        df.at[i, "fed_soma_reserve"] = fed_soma_reserve
+        df.at[i, 'rollover'] = rollover
+        df.at[i, 'issue_to_market'] = issue_to_market
+        df.at[i, "daily_fed_soma_reserve"] = daily_fed_soma_reserve
     return df
 
 
