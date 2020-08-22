@@ -26,8 +26,7 @@ def update_past_new_fed_soma_df(d, df):
             new_date = cur
             new_past_fed_soma = get_past_new_fed_soma(cur)
             df.loc[len(df)] = [new_date, new_past_fed_soma]
-            if int(cur) <= int(today_my_date):
-                dump_fed_soma_df(df)
+            dump_fed_soma_df(df)
 
 
 def load_new_fed_soma_df():

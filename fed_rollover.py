@@ -69,6 +69,8 @@ def update_soma_rollover(df):
                 percents_from_fed = 0.7
             rollover = min(percents_from_fed*daily_fed_soma_reserve, offering_amount)
             issue_to_market = offering_amount - rollover
+            if i > 610:
+                print("h")
             fed_soma_reserve = fed_soma_reserve-rollover
 
         df.at[i, "fed_soma_reserve"] = fed_soma_reserve
@@ -85,7 +87,7 @@ def dump_fed_rollover_df(df):
 
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
-dr = ["20", "08", "2019", "07", "08", "2020"]
+dr = ["20", "08", "2019", "27", "08", "2020"]
 dates = holidays.generate_dates(dr)
 dates = update_dates(dates)
 print(dates[:75])

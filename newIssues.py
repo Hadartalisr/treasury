@@ -9,8 +9,7 @@ import holidays
 
 def update_dates(d):
     df = load_auction_dates_df()
-    update_past_auction_dates(d, df)
-    # update_fed_investments_future(d, df)
+    df = update_auction_dates(d, df)
     df.date = df.date.astype(int)
     d.date = d.date.astype(int)
     d = d.merge(df, on="date", how="left")
@@ -18,23 +17,22 @@ def update_dates(d):
     return d
 
 
-def update_past_auction_dates(dates, df):
+def update_auction_dates(dates, df):
     today = datetime.date.today()
     today_my_date = date.get_my_date_from_date(today)
     for i in range(0, len(dates)):
         cur = dates.loc[i, 'date']
         if int(cur) not in df['date'].values:
-            if int(cur) <= int(today_my_date):
-                # need to update new values
-                new_date = str(cur)
-                new_auction_date_df = get_issues_from_date(new_date)
-                if len(df) == 0:
-                    df = new_auction_date_df
-                else:
-                    df = df.append(new_auction_date_df)
-                dump_auction_dates_df(df)
-    df.reset_index(inplace=True)
-
+            # need to update new values
+            new_date = str(cur)
+            new_auction_date_df = get_issues_from_date(new_date)
+            if len(df) == 0:
+                df = new_auction_date_df
+            else:
+                df = df.append(new_auction_date_df)
+            dump_auction_dates_df(df)
+    df = df.reset_index()
+    return df
 
 def load_auction_dates_df():
     today = int(date.get_my_date_from_date(datetime.date.today()))
