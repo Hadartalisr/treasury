@@ -28,6 +28,7 @@ def get_date_format_for_treasurydirect(date):
 
 # date in my format - returns datetime
 def add_days_and_get_date(date, days_to_add):
+    date = str(date)
     my_date_day = date[4:6]
     my_date_month = date[2:4]
     my_date_year = '20' + date[0:2]

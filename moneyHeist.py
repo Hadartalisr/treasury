@@ -2,9 +2,6 @@ import datetime
 import math
 import pandas as pd
 import pytz
-
-from UI import show_my_plot
-import stocks
 import date
 import holidays
 import issuesMaturities
@@ -15,6 +12,7 @@ import ambs
 import swap
 import candles
 import statistics
+import fed_rollover
 
 def update_data_issues_maturity_fedsoma_fedinv(d):
     d['issues_after_past_fed_soma'] = 0
@@ -60,6 +58,15 @@ def update_data_issues_maturity_fedsoma_fedinv_mbs(d):
         mbs = d.at[index, 'mbs']
         if not math.isnan(mbs):
             d.at[index, 'issues_maturity_fedsoma_fedinv_mbs'] -= mbs
+    return d
+
+
+def new_update_data_issues_maturity_fedsoma_fedinv_mbs(d):
+    d['issues_to_market_sub_total_maturities_sub_inv_mbs'] = d['issues_to_market_sub_total_maturities_sub_inv']
+    for index, row in d.iterrows():
+        mbs = d.at[index, 'mbs']
+        if not math.isnan(mbs):
+            d.at[index, 'issues_to_market_sub_total_maturities_sub_inv_mbs'] -= mbs
     return d
 
 
@@ -324,6 +331,22 @@ def get_dates_df(date_range):
     print(color.PURPLE + color.BOLD + '***** end - update_super_data_issues_maturity_fedsoma_fedinv_mbs_swap *****' +
           color.END)
 
+    print(color.GREEN + color.BOLD + '***** start - fed_rollover *****' +
+          color.END)
+    dates = fed_rollover.update_dates(dates)
+    dates['issues_to_market_sub_total_maturities'] =\
+        dates.apply(lambda row: row['issue_to_market'] - row['total_maturities'], axis=1)
+    dates['issues_to_market_sub_total_maturities_sub_inv'] = \
+        dates.apply(lambda row: row['issues_to_market_sub_total_maturities'] - row['fed_investments'], axis=1)
+    dates = new_update_data_issues_maturity_fedsoma_fedinv_mbs(dates)
+    print(dates[-20:])
+    if len(dates) > length:
+        raise Exception("fed_rollover dates length was extended")
+    print(color.PURPLE + color.BOLD + '***** end - fed_rollover *****' +
+          color.END)
+
+
+
     """
     print(color.GREEN + color.BOLD + '***** start - validateDates *****' +
           color.END)
@@ -366,6 +389,9 @@ def get_dates_df(date_range):
     dates = dates.fillna(0).reset_index()
     dates['Datetime'] = dates['Datetime'].apply(lambda row: str(row)[:-6])
     return dates
+
+
+
 
 
 # The process (main)
@@ -424,11 +450,7 @@ def get_long_day(d):
 
 
 
-"""
-dr = ["02", "08", "2020", "07", "08", "2020"]
-df = get_dates_df(dr)
-long_df = get_days_with_super_data_less_then(df, -10000000000)
-"""
+
 
 
 

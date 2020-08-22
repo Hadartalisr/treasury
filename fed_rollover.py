@@ -9,12 +9,42 @@ import holidays
 
 
 def update_dates(df):
-    df = newFedSoma.update_dates(df)
-    df = newIssues.update_dates(df)
-    df = update_new_fed_soma_true(df)
-    df = update_soma_rollover(df)
-    dump_fed_rollover_df(df)
-    return df
+    new_fed_soma_df = create_final_fed_rollover_df(df)
+    df.date = df.date.astype(int)
+    new_fed_soma_df.date = new_fed_soma_df.date.astype(int)
+    merged_df = df.merge(new_fed_soma_df, on="date", how="left")
+    merged_df.date.apply(str)
+    merged_df.fillna(0)
+    return merged_df
+
+
+
+
+def create_final_fed_rollover_df(df):
+    rollover_df = generate_fed_rollover_df(df)
+    issues_df = rollover_df[['issue_date', 'rollover', 'issue_to_market']].groupby('issue_date').sum().reset_index()
+    issues_df.columns = [c.replace('issue_date', 'date') for c in issues_df.columns]
+    new_fed_soma_df = rollover_df[['date', 'new_fed_soma','new_fed_soma_true','daily_fed_soma_reserve']].\
+        groupby('date').max().reset_index()
+    issues_df.date = issues_df.date.astype(int)
+    new_fed_soma_df.date = new_fed_soma_df.date.astype(int)
+    new_fed_soma_df = new_fed_soma_df.merge(issues_df, on="date", how="left")
+    new_fed_soma_df.date.apply(str)
+    new_fed_soma_df = new_fed_soma_df.fillna(0)
+    return new_fed_soma_df
+
+
+def generate_fed_rollover_df(df):
+    new_df = df[['date', 'is_legal_date']]
+    new_df = newFedSoma.update_dates(new_df)
+    new_df = newIssues.update_dates(new_df)
+    new_df = update_new_fed_soma_true(new_df)
+    new_df = update_soma_rollover(new_df)
+    try:
+        dump_fed_rollover_df(new_df)
+    except Exception as ex:
+        "didn't dump_fed_rollover_df to excel"
+    return new_df
 
 
 def update_new_fed_soma_true(df):
@@ -25,7 +55,7 @@ def update_new_fed_soma_true(df):
         if df.at[index, 'is_legal_date']:
             df.at[index, 'new_fed_soma_true'] += value_to_add
         else:
-            while not (df.at[index, 'is_legal_date'] and df.at[index, 'offering_Amount'] > 0):
+            while not (df.at[index, 'is_legal_date'] and int(df.at[index, 'offering_Amount']) > 0):
                 if index == 0:
                     break
                 else:
@@ -54,23 +84,21 @@ def update_soma_rollover(df):
             past_fed_soma_reserve = df.at[i-1, 'fed_soma_reserve']
             fed_soma_reserve = past_fed_soma_reserve
             if df.at[i, 'date'] == df.at[i-1, 'date']:
-                daily_fed_soma_reserve = df.at[i-1, 'daily_fed_soma_reserve']
+                daily_fed_soma_reserve = int(df.at[i-1, 'daily_fed_soma_reserve'])
             else:
-                daily_fed_soma_reserve = df.at[i-1, 'fed_soma_reserve'] + df.at[i, 'new_fed_soma_true']
+                daily_fed_soma_reserve = int(df.at[i-1, 'fed_soma_reserve']) + int(df.at[i, 'new_fed_soma_true'])
                 fed_soma_reserve += df.at[i, 'new_fed_soma_true']
 
         percents = df.at[i, 'percents']
         if percents == 0:   # there is NOT offering_Amount
             rollover = 0
         else:   # there is offering_Amount
-            offering_amount = df.at[i, 'offering_Amount']
+            offering_amount = int(df.at[i, 'offering_Amount'])
             percents_from_fed = percents
             if percents_from_fed > 0.7:
                 percents_from_fed = 0.7
-            rollover = min(percents_from_fed*daily_fed_soma_reserve, offering_amount)
-            issue_to_market = offering_amount - rollover
-            if i > 610:
-                print("h")
+            rollover = min(int(percents_from_fed*daily_fed_soma_reserve), offering_amount)
+            issue_to_market = offering_amount - int(rollover)
             fed_soma_reserve = fed_soma_reserve-rollover
 
         df.at[i, "fed_soma_reserve"] = fed_soma_reserve
@@ -84,11 +112,7 @@ def dump_fed_rollover_df(df):
     excel_file = '.idea/fed_rollover.xlsx'
     df.to_excel(excel_file, index=False)
 
-
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
-dr = ["20", "08", "2019", "27", "08", "2020"]
+"""
+dr = ["02", "08", "2020", "07", "08", "2020"]
 dates = holidays.generate_dates(dr)
-dates = update_dates(dates)
-print(dates[:75])
-
+update_dates(dates)"""

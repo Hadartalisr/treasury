@@ -67,6 +67,7 @@ def get_past_new_soma_url_from_rel_wednesday(d):
 
 # date in my_date format , weeks : number is the reverse weeks from last wed date - 0 by default,
 def get_past_new_soma_url(d):
+    d = str(d)
     date_day = d[4:6]
     date_month = d[2:4]
     date_year = '20' + d[0:2]
@@ -85,7 +86,7 @@ def get_new_soma_df(d):
         date_for_url = date.get_my_date_from_date(date.add_days_and_get_date(date_for_url, -1))
         excel_url = get_past_new_soma_url(date_for_url)
         resp = requests.get(excel_url)
-    print(d + " success url : " + excel_url)
+    print(str(d) + " success url : " + excel_url)
     resp = resp.content
     df = pd.read_excel(resp)
     df.columns = [c.replace(' ', '_') for c in df.columns]
