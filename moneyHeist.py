@@ -454,10 +454,10 @@ def get_long_day(d):
         return date.get_my_date_from_date(day_before)
     return d
 
-
+"""
 dr = ["03", "08", "2020", "31", "08", "2020"]
 main(dr)
-
+"""
 
 
 
