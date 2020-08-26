@@ -334,10 +334,16 @@ def get_dates_df(date_range):
     print(color.GREEN + color.BOLD + '***** start - fed_rollover *****' +
           color.END)
     dates = fed_rollover.update_dates(dates)
+    if len(dates) > length:
+        raise Exception("fed_rollover dates length was extended")
     dates['issues_to_market_sub_total_maturities'] =\
         dates.apply(lambda row: row['issue_to_market'] - row['total_maturities'], axis=1)
+    if len(dates) > length:
+        raise Exception("fed_rollover dates length was extended")
     dates['issues_to_market_sub_total_maturities_sub_inv'] = \
         dates.apply(lambda row: row['issues_to_market_sub_total_maturities'] - row['fed_investments'], axis=1)
+    if len(dates) > length:
+        raise Exception("fed_rollover dates length was extended")
     dates = new_update_data_issues_maturity_fedsoma_fedinv_mbs(dates)
     print(dates[-20:])
     if len(dates) > length:
@@ -449,8 +455,8 @@ def get_long_day(d):
     return d
 
 
-
-
+dr = ["03", "08", "2020", "31", "08", "2020"]
+main(dr)
 
 
 

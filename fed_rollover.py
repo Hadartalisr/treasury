@@ -22,7 +22,9 @@ def update_dates(df):
 
 def create_final_fed_rollover_df(df):
     rollover_df = generate_fed_rollover_df(df)
-    issues_df = rollover_df[['issue_date', 'rollover', 'issue_to_market']].groupby('issue_date').sum().reset_index()
+    rollover_df.issue_date = rollover_df.issue_date.astype(int)
+    issues_df = rollover_df[['issue_date', 'rollover', 'issue_to_market']].groupby('issue_date').sum()
+    issues_df.reset_index(inplace=True)
     issues_df.columns = [c.replace('issue_date', 'date') for c in issues_df.columns]
     new_fed_soma_df = rollover_df[['date', 'new_fed_soma','new_fed_soma_true','daily_fed_soma_reserve']].\
         groupby('date').max().reset_index()
