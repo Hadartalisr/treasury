@@ -17,8 +17,6 @@ def update_dates(d):
 
 
 def update_past_new_fed_soma_df(d, df):
-    today = datetime.date.today()
-    today_my_date = date.get_my_date_from_date(today)
     for i in range(0, len(d)):
         cur = d.loc[i, 'date']
         if int(cur) not in df['date'].values:
@@ -27,6 +25,7 @@ def update_past_new_fed_soma_df(d, df):
             new_past_fed_soma = get_past_new_fed_soma(cur)
             df.loc[len(df)] = [new_date, new_past_fed_soma]
             dump_fed_soma_df(df)
+
 
 
 def load_new_fed_soma_df():
@@ -98,9 +97,11 @@ def get_new_soma_df(d):
 def get_past_new_fed_soma(d):
     past_new_fed_soma = 0
     df = get_new_soma_df(d)
-    new_df = df.groupby('date').sum().reset_index()
-    new_df = new_df[new_df['date'] == d].reset_index()
+    df.date = df.date.astype(int)
+    df = df.groupby('date').sum().reset_index()
+    new_df = df[df['date'] == d].reset_index()
     if len(new_df) == 1:
         past_new_fed_soma = new_df.at[0, 'Par_Value']
     return past_new_fed_soma
+
 
