@@ -1,3 +1,4 @@
+import datetime as datetime
 import yfinance as yf
 import pandas as pd
 import UI
@@ -5,6 +6,7 @@ import date
 import matplotlib.pyplot as plt
 import datetime
 import pytz
+
 
 
 def plot_daily(df):
@@ -43,19 +45,59 @@ def get_end_date(d):
     return generate_stock_date_from_my_date(d)
 
 
+def get_all_stocks_df_between_dates(start_date, end_date):
+    snp = get_stocks_df_between_dates(start_date, end_date, "ES=F")
+    snp['Datetime'] = snp['Datetime'].dt.tz_localize(None)
+    for c in snp.columns:
+        if c not in ["date", "Datetime"]:
+            snp.rename(columns={c: "snp_"+c}, inplace=True)
+    print("\n\nsnp\n\n")
+    print(snp[:50])
+
+
+    ta35 = get_stocks_df_between_dates(start_date, end_date, "TA35.TA")
+    ta35['Datetime'] = ta35['Datetime'].dt.tz_localize(None)
+    ta35['Datetime'] = ta35['Datetime'].apply(lambda x: x - datetime.timedelta(hours=0.5))
+    for c in ta35.columns:
+        if c not in ["date", "Datetime"]:
+            ta35.rename(columns={c: "ta35_"+c}, inplace=True)
+    snp = snp.merge(ta35, on="Datetime", how="outer")
+    print("\n\nsnp\n\n")
+    print(snp[:50])
+
+
+    dax = get_stocks_df_between_dates(start_date, end_date, "DAX")
+    dax['Datetime'] = dax['Datetime'].dt.tz_localize(None)
+    dax['Datetime'] = dax['Datetime'].apply(lambda x: x - datetime.timedelta(hours=0.5))
+    for c in dax.columns:
+        if c not in ["date", "Datetime"]:
+            dax.rename(columns={c: "dax_"+c}, inplace=True)
+    snp = snp.merge(dax, on="Datetime", how="outer")
+    print("\n\nsnp\n\n")
+    print(snp[:50])
+
+
+
+    snp.fillna(0)
+    print(snp[snp['date'].isnull()])
+    snp['date'] = snp['Datetime'].apply(lambda x: date.get_my_date_from_datetime(x))
+    print(snp[snp['date'].isnull()])
+    return snp
+
+
 # this function generates the stock dates and also add days and hours in the future so the graph will
 # be at the same scale (my_date format)
-def get_stocks_df_between_dates(start_date, end_date):
+def get_stocks_df_between_dates(start_date, end_date, symbol):
     stock_start_date = generate_stock_date_from_my_date(start_date)
     stock_end_date = generate_stock_date_from_my_date(end_date)
-    gspc = yf.Ticker("ES=F")
+    gspc = yf.Ticker(symbol)
     hist = gspc.history(start=stock_start_date, end=stock_end_date, interval="60m").reset_index()
     hist = generate_future_dates(hist, end_date)
     hist['date'] = 0
     for index, row in hist.iterrows():
         hist.loc[index, 'date'] = date.get_my_date_from_datetime(hist.loc[index, 'Datetime'])
     hist.set_index('Datetime')
-    print(hist[-100:])
+    """print(hist[-100:])"""
     return hist
 
 
@@ -75,4 +117,6 @@ def generate_stock_date_from_my_date(d):
     m = date.get_month_from_my_date(d)
     d = date.get_day_from_my_date(d)
     return y + "-" + m + "-" + d
+
+
 

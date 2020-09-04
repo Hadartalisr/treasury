@@ -98,8 +98,3 @@ def get_issues_from_date(my_date):
 
 
 
-"""
-dr = ["01", "01", "2020", "14", "09", "2020"]
-dates = holidays.generate_dates(dr)
-update_dates(dates)
-"""

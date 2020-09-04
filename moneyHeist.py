@@ -201,7 +201,7 @@ def update_trading_index(op, trading_min, trading_max, num):
 
 
 # update the [['future_start', 'trading_index', 'trading_min', 'trading_max']]
-def get_future_start(row):
+def get_future_start(row, name):
     dt = row['Datetime']
     utc = pytz.UTC
     if dt >= utc.localize(datetime.datetime.today() - datetime.timedelta(days=1)):
@@ -212,17 +212,17 @@ def get_future_start(row):
     # if (hour == 18 and minute == 0) or (hour == 17 and weekday == 4):  # and weekday != 4: or (hour == 17 and minute == 0 and weekday == 4):
     future_start = 0
     if hour == 18 and minute == 0:
-        future_start = row['Open']
+        future_start = row[name+'Open']
         update_trading_index(future_start, 0, 0, 1)
     arr = get_trading_index()
     trading_index = arr[0]
-    new_trading_min = min(row['Low'], arr[1])
-    new_trading_max = max(row['High'], arr[2])
+    new_trading_min = min(row[name+'Low'], arr[1])
+    new_trading_max = max(row[name+'High'], arr[2])
     update_trading_index(0, new_trading_min, new_trading_max, 0)
     trading_percents = 0
     if arr[3] != 0:
         start = float(arr[3])
-        current = float(row['High'])
+        current = float(row[name+'High'])
         trading_percents = ((current-start)*100)/start
     return pd.Series([future_start, trading_index, new_trading_min, new_trading_max, trading_percents])
 
@@ -376,20 +376,23 @@ def get_dates_df(date_range):
     # get the s&p futures data
     start_date = str(dates.at[0, 'date'])
     end_date = date.get_my_date_from_date(date.add_days_and_get_date(str(dates.at[len(dates)-1, 'date']), 5))
-    futures = candles.get_stocks_df_between_dates(start_date, end_date)
+    futures = candles.get_all_stocks_df_between_dates(start_date, end_date)
 
-    # merge with the futures S&P
+# merge with the futures S&P
     dates.date = dates.date.astype(int)
     futures.date = futures.date.astype(int)
     dates = dates.merge(futures, on="date", how="left").loc[1:]
     dates.date.apply(str)
-
     # add the future_start (the time which the futures contract starts)
-    update_trading_index(dates.at[1, 'Open'], 0, 0, -1)
-    dates[['future_start', 'trading_index', 'trading_min', 'trading_max', 'trading_percents']] =  \
-        dates.apply(lambda row: get_future_start(row), axis=1)
+    update_trading_index(dates.at[1, "snp_"+'Open'], 0, 0, -1)
+    """dates[['future_start', 'trading_index', 'trading_min', 'trading_max', 'trading_percents']] =  \
+        dates.apply(lambda row: get_future_start(row, "snp_"), axis=1)
 
-    dates = statistics.get_max_percent(dates)
+
+
+
+
+    dates = statistics.get_max_percent(dates)"""
 
     # delete the time zone from the dates and fill null values with zero's
     dates = dates.fillna(0).reset_index()
@@ -454,10 +457,8 @@ def get_long_day(d):
         return date.get_my_date_from_date(day_before)
     return d
 
+
+
 """
 dr = ["03", "08", "2020", "31", "08", "2020"]
 main(dr)"""
-
-
-
-
