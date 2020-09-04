@@ -77,11 +77,18 @@ def get_all_stocks_df_between_dates(start_date, end_date):
     print(snp[:50])
 
 
+    usoil = get_stocks_df_between_dates(start_date, end_date, "CL=F")
+    usoil['Datetime'] = usoil['Datetime'].dt.tz_localize(None)
+    for c in usoil.columns:
+        if c not in ["date", "Datetime"]:
+            usoil.rename(columns={c: "usoil_"+c}, inplace=True)
+    snp = snp.merge(usoil, on="Datetime", how="outer")
+    print("\n\nsnp\n\n")
+    print(snp[:50])
+
 
     snp.fillna(0)
-    print(snp[snp['date'].isnull()])
     snp['date'] = snp['Datetime'].apply(lambda x: date.get_my_date_from_datetime(x))
-    print(snp[snp['date'].isnull()])
     return snp
 
 

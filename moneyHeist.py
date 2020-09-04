@@ -204,7 +204,7 @@ def update_trading_index(op, trading_min, trading_max, num):
 def get_future_start(row, name):
     dt = row['Datetime']
     utc = pytz.UTC
-    if dt >= utc.localize(datetime.datetime.today() - datetime.timedelta(days=1)):
+    if dt >= datetime.datetime.today() - datetime.timedelta(days=1):
         return pd.Series([0, 0, 0, 0])
     weekday = dt.weekday()
     hour = dt.hour
@@ -384,14 +384,14 @@ def get_dates_df(date_range):
     dates = dates.merge(futures, on="date", how="left").loc[1:]
     dates.date.apply(str)
     # add the future_start (the time which the futures contract starts)
-    update_trading_index(dates.at[1, "snp_"+'Open'], 0, 0, -1)
-    """dates[['future_start', 'trading_index', 'trading_min', 'trading_max', 'trading_percents']] =  \
+    update_trading_index(0, 0, 0, -1)
+    dates[['future_start', 'trading_index', 'trading_min', 'trading_max', 'trading_percents']] =  \
         dates.apply(lambda row: get_future_start(row, "snp_"), axis=1)
 
 
 
 
-
+    """
     dates = statistics.get_max_percent(dates)"""
 
     # delete the time zone from the dates and fill null values with zero's
@@ -420,7 +420,7 @@ def get_long_days(date_range, amount):
 # df, amount is the amount as number
 def get_days_with_super_data_less_then(df, amount):
     print("get_days_with_super_date_less_then: " + str(amount) + " $.")
-    new_df = df[df['issues_maturity_fedsoma_fedinv_mbs'] <= amount][['date']].drop_duplicates()
+    new_df = df[df['issues_to_market_sub_total_maturities_sub_inv_mbs'] <= amount][['date']].drop_duplicates()
     long_days = get_long_days_from_super_data(new_df)
     long_trading_indices = get_long_trading_indices(df, long_days)
     return long_trading_indices
@@ -459,6 +459,6 @@ def get_long_day(d):
 
 
 
-"""
+
 dr = ["03", "08", "2020", "31", "08", "2020"]
-main(dr)"""
+get_long_days(dr,0)
