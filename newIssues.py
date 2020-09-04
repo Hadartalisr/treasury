@@ -34,6 +34,7 @@ def update_auction_dates(dates, df):
     df = df.reset_index()
     return df
 
+
 def load_auction_dates_df():
     today = int(date.get_my_date_from_date(datetime.date.today()))
     excel_file = '.idea/auction_dates.xlsx'
@@ -97,4 +98,8 @@ def get_issues_from_date(my_date):
 
 
 
-
+"""
+dr = ["01", "01", "2020", "14", "09", "2020"]
+dates = holidays.generate_dates(dr)
+update_dates(dates)
+"""

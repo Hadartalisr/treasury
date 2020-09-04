@@ -114,7 +114,4 @@ def dump_fed_rollover_df(df):
     excel_file = '.idea/fed_rollover.xlsx'
     df.to_excel(excel_file, index=False)
 
-"""
-dr = ["02", "08", "2020", "07", "08", "2020"]
-dates = holidays.generate_dates(dr)
-update_dates(dates)"""
+

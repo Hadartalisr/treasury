@@ -104,4 +104,3 @@ def get_past_new_fed_soma(d):
         past_new_fed_soma = new_df.at[0, 'Par_Value']
     return past_new_fed_soma
 
-
